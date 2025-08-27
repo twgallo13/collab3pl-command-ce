@@ -86,7 +86,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         
         <div className="p-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
-            Version: {import.meta.env.VITE_APP_VERSION || '1.2.0'}
+            Version: {import.meta.env.VITE_APP_VERSION || '1.5.0'}
           </p>
         </div>
       </aside>
