@@ -23,7 +23,9 @@ import {
   X,
   CheckCircle,
   CaretDown,
-  FilePdf
+  FilePdf,
+  FileCsv,
+  FileXls
 } from '@phosphor-icons/react'
 import { Invoice } from '@/types/invoices'
 import { toast } from 'sonner'
@@ -143,6 +145,100 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
       
     } catch (error) {
       toast.error('Failed to export PDF', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleDownloadCSV = async () => {
+    try {
+      setExportLoading(true)
+      
+      const response = await fetch(`/api/invoices/${invoiceId}/export/csv`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate CSV')
+      }
+
+      // Create download link using data URI
+      const link = document.createElement('a')
+      link.href = result.csvData
+      link.download = result.filename
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      
+      toast.success('CSV downloaded successfully', {
+        description: `File: ${result.filename}`
+      })
+      
+    } catch (error) {
+      toast.error('Failed to export CSV', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleDownloadExcel = async () => {
+    try {
+      setExportLoading(true)
+      
+      const response = await fetch(`/api/invoices/${invoiceId}/export/xlsx`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate Excel file')
+      }
+
+      // Convert base64 data URI to blob and trigger download
+      const base64Data = result.excelData.split(',')[1] // Remove data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64, prefix
+      const byteCharacters = atob(base64Data)
+      const byteNumbers = new Array(byteCharacters.length)
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = result.filename
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast.success('Excel file downloaded successfully', {
+        description: `File: ${result.filename}`
+      })
+      
+    } catch (error) {
+      toast.error('Failed to export Excel', {
         description: error instanceof Error ? error.message : 'Unknown error occurred'
       })
     } finally {
@@ -389,6 +485,14 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
               <DropdownMenuItem onClick={handleDownloadPDF} disabled={exportLoading}>
                 <FilePdf size={16} className="mr-2" />
                 Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadCSV} disabled={exportLoading}>
+                <FileCsv size={16} className="mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadExcel} disabled={exportLoading}>
+                <FileXls size={16} className="mr-2" />
+                Export as Excel
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
