@@ -15,12 +15,15 @@ import {
   Upload,
   CheckCircle,
   Warning,
-  XCircle
+  XCircle,
+  Calculator
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
+import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
+import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
 import { toast } from 'sonner'
 
 interface SidebarProps {
@@ -122,8 +125,10 @@ function Header({ onMenuClick }: { onMenuClick: () => void }) {
 function DashboardContent() {
   const [validationResults, setValidationResults] = useKV<ValidationResponse | null>('validation-results', null)
   const [commitResults, setCommitResults] = useKV<CommitResponse | null>('commit-results', null)
+  const [quoteResults, setQuoteResults] = useKV<QuoteResponse | null>('quote-results', null)
   const [isValidating, setIsValidating] = useState(false)
   const [isCommitting, setIsCommitting] = useState(false)
+  const [isGeneratingQuote, setIsGeneratingQuote] = useState(false)
 
   // Mock validation request for demonstration
   const handleTestValidation = async () => {
@@ -197,6 +202,81 @@ function DashboardContent() {
       })
     } finally {
       setIsCommitting(false)
+    }
+  }
+
+  // Mock quote generation for demonstration
+  const handleTestQuote = async () => {
+    setIsGeneratingQuote(true)
+    
+    try {
+      const mockQuoteRequest: QuoteRequest = {
+        version_id: "v2024.1",
+        customer_id: "CUST_001",
+        effective_date: "2024-01-01",
+        origin: {
+          zip3: "902",
+          state: "CA",
+          country: "US"
+        },
+        destination: {
+          zip3: "750",
+          state: "TX", 
+          country: "US"
+        },
+        services: {
+          receiving: {
+            pallets: 100,
+            cartons: 500,
+            pieces: 2500
+          },
+          fulfillment: {
+            orders: 1000,
+            lines: 3500,
+            pieces: 5000
+          },
+          storage: {
+            pallets: 200,
+            sq_ft: 5000
+          },
+          vas: [
+            {
+              service_code: "LABEL_APPLY",
+              quantity: 1000
+            },
+            {
+              service_code: "GIFT_WRAP",
+              quantity: 50
+            }
+          ]
+        },
+        discounts: [
+          {
+            type: "flat",
+            amount: 500,
+            description: "Volume discount"
+          },
+          {
+            type: "percentage",
+            amount: 5,
+            description: "Contract discount (5%)"
+          }
+        ]
+      }
+      
+      const result = await generateQuote(mockQuoteRequest)
+      setQuoteResults(result)
+      
+      toast.success('Quote generated successfully', {
+        description: `Quote ID: ${result.quote_id}`
+      })
+      
+    } catch (error) {
+      toast.error('Quote generation failed', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setIsGeneratingQuote(false)
     }
   }
 
@@ -279,8 +359,8 @@ function DashboardContent() {
         </Card>
       </div>
 
-      {/* Benchmark Validation Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Benchmark Validation & Quote Generation Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -350,6 +430,48 @@ function DashboardContent() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Quote Generator
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Test the quote generation API with sample logistics data
+            </p>
+            <Button 
+              onClick={handleTestQuote} 
+              disabled={isGeneratingQuote || isValidating || isCommitting}
+              className="w-full"
+            >
+              {isGeneratingQuote ? 'Generating Quote...' : 'Generate Test Quote'}
+            </Button>
+            
+            {quoteResults && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">Quote Generated</span>
+                </div>
+                
+                <div className="text-sm space-y-1">
+                  <div>Quote ID: {quoteResults.quote_id}</div>
+                  <div>Customer: {quoteResults.customer_id}</div>
+                  <div>Lane: {quoteResults.lanes.outbound}</div>
+                  <div className="font-medium">Total: ${quoteResults.totals.total.toFixed(2)}</div>
+                  {quoteResults.comparison && (
+                    <div className="text-green-600">
+                      Savings: ${quoteResults.comparison.savings_amount.toFixed(2)} ({quoteResults.comparison.savings_percentage.toFixed(1)}%)
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
@@ -457,6 +579,80 @@ function DashboardContent() {
                 )}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quote Details */}
+      {quoteResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Quote Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3">Line Items</h4>
+                <div className="space-y-2">
+                  {quoteResults.lines.map((line, index) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
+                      <div>
+                        <span className="text-sm font-medium">{line.description}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {line.quantity} × ${line.unit_rate.toFixed(2)}
+                        </span>
+                      </div>
+                      <span className="font-medium">${line.extended_cost.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-3">Subtotals</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Receiving:</span>
+                      <span>${quoteResults.subtotals.receiving.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Fulfillment:</span>
+                      <span>${quoteResults.subtotals.fulfillment.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Storage:</span>
+                      <span>${quoteResults.subtotals.storage.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>VAS:</span>
+                      <span>${quoteResults.subtotals.vas.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {quoteResults.discounts_applied.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3">Discounts Applied</h4>
+                    <div className="space-y-1 text-sm">
+                      {quoteResults.discounts_applied.map((discount, index) => (
+                        <div key={index} className="flex justify-between text-green-600">
+                          <span>{discount.description}:</span>
+                          <span>-${discount.applied_to_amount.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="border-t pt-3">
+                  <div className="flex justify-between font-medium">
+                    <span>Total:</span>
+                    <span>${quoteResults.totals.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
