@@ -23,6 +23,7 @@ import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@
 import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
 import { QuoteGeneratorPage } from '@/components/QuoteGeneratorPage'
 import { InvoiceManagementPage } from '@/components/InvoiceManagementPage'
+import { InvoiceDetailPage } from '@/components/InvoiceDetailPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -666,6 +667,7 @@ function DashboardContent() {
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeItem] = useKV('sidebar-active', 'dashboard')
+  const [selectedInvoice, setSelectedInvoice] = useKV<string | null>('selected-invoice', null)
 
   const renderContent = () => {
     switch (activeItem) {
@@ -674,7 +676,19 @@ export default function App() {
       case 'quote-generator':
         return <QuoteGeneratorPage />
       case 'billing':
-        return <InvoiceManagementPage />
+        if (selectedInvoice) {
+          return (
+            <InvoiceDetailPage 
+              invoiceId={selectedInvoice}
+              onNavigateBack={() => setSelectedInvoice(null)}
+            />
+          )
+        }
+        return (
+          <InvoiceManagementPage 
+            onNavigateToDetail={(invoiceId) => setSelectedInvoice(invoiceId)}
+          />
+        )
       case 'dashboard':
       default:
         return <DashboardContent />

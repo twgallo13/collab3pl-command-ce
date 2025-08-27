@@ -27,6 +27,10 @@ import {
 import { Invoice } from '@/types/invoices'
 import { toast } from 'sonner'
 
+interface InvoiceManagementPageProps {
+  onNavigateToDetail?: (invoiceId: string) => void
+}
+
 const getStatusBadge = (status: Invoice['meta']['status']) => {
   const variants = {
     draft: { variant: 'outline' as const, color: 'text-gray-600', bg: 'bg-gray-100' },
@@ -63,7 +67,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-export function InvoiceManagementPage() {
+export function InvoiceManagementPage({ onNavigateToDetail }: InvoiceManagementPageProps = {}) {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -104,10 +108,13 @@ export function InvoiceManagementPage() {
   })
 
   const handleRowClick = (invoiceId: string) => {
-    // TODO: Navigate to invoice detail page
-    toast.info(`Opening invoice ${invoiceId}`, {
-      description: 'Invoice detail page will be implemented next'
-    })
+    if (onNavigateToDetail) {
+      onNavigateToDetail(invoiceId)
+    } else {
+      toast.info(`Opening invoice ${invoiceId}`, {
+        description: 'Invoice detail navigation not configured'
+      })
+    }
   }
 
   const handleDownloadPDF = (invoiceId: string, e: React.MouseEvent) => {
@@ -281,7 +288,7 @@ export function InvoiceManagementPage() {
                         <div>
                           <div className="font-medium">{invoice.client.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {invoice.client.billingContact.email}
+                            {invoice.client.email}
                           </div>
                         </div>
                       </TableCell>

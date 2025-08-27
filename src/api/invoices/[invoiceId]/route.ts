@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { Invoice } from '@/types/invoices'
 
 // Mock database - in production this would be Firestore
-const mockInvoices: Invoice[] = [
-  {
+const mockInvoices: Record<string, Invoice> = {
+  'INV-2025-000123': {
     meta: {
       invoiceId: 'INV-2025-000123',
       status: 'issued',
@@ -177,7 +177,7 @@ const mockInvoices: Invoice[] = [
       csv: '2025-01-01T10:25:00Z'
     }
   },
-  {
+  'INV-2025-000124': {
     meta: {
       invoiceId: 'INV-2025-000124',
       status: 'draft',
@@ -273,110 +273,30 @@ const mockInvoices: Invoice[] = [
       }
     },
     exports: {}
-  },
-  {
-    meta: {
-      invoiceId: 'INV-2025-000125',
-      status: 'overdue',
-      currency: 'USD',
-      version: 1,
-      created: '2024-12-15T14:30:00Z',
-      updated: '2024-12-15T14:30:00Z'
-    },
-    client: {
-      accountId: 'ACCT_003',
-      name: 'Global Logistics Co.',
-      email: 'accounts@globallogistics.com',
-      address: {
-        line1: '789 Warehouse Way',
-        city: 'Dallas',
-        state: 'TX',
-        zip: '75201',
-        country: 'US'
-      }
-    },
-    dateRange: {
-      periodStart: '2024-11-01',
-      periodEnd: '2024-11-30',
-      issuedOn: '2024-12-15',
-      dueOn: '2025-01-14',
-      terms: 'Net 30'
-    },
-    references: {
-      quoteId: 'QTE-2024-000321',
-      rateCardVersionId: 'v2024.3'
-    },
-    lineItems: [
-      {
-        category: 'Storage',
-        description: 'Pallet Storage - Standard',
-        quantity: 500,
-        uom: 'pallet-month',
-        rate: 18.75,
-        amount: 9375.00,
-        discountable: true,
-        period: '2024-11'
-      }
-    ],
-    discounts: [],
-    tax: {
-      enabled: true,
-      rate: 8.25,
-      basis: 'after_discounts',
-      amount: 773.44
-    },
-    rounding: {
-      mode: 'nearest_cent',
-      precision: 2
-    },
-    totals: {
-      discountableSubtotal: 9375.00,
-      nonDiscountableSubtotal: 0,
-      beforeDiscounts: 9375.00,
-      discountsApplied: [],
-      totalDiscounts: 0,
-      afterDiscounts: 9375.00,
-      taxes: 773.44,
-      grandTotal: 10148.44
-    },
-    notes: {
-      internal: 'Client frequently pays late - monitor closely',
-      vendorVisible: 'Invoice overdue. Please remit payment immediately.',
-      history: []
-    },
-    audit: {
-      events: [
-        {
-          timestamp: '2024-12-15T14:30:00Z',
-          user: 'admin@collab3pl.com',
-          action: 'created',
-          details: 'Invoice created'
-        },
-        {
-          timestamp: '2024-12-15T15:00:00Z',
-          user: 'admin@collab3pl.com',
-          action: 'issued',
-          details: 'Invoice issued to client'
-        }
-      ],
-      inputsSnapshot: {
-        rateCardVersion: 'v2024.3',
-        discountRules: [],
-        taxRate: 8.25
-      }
-    },
-    exports: {
-      pdf: '2024-12-15T15:05:00Z'
-    }
   }
-]
+}
 
-export async function GET() {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { invoiceId: string } }
+) {
   try {
-    // In production, this would fetch from Firestore with pagination, sorting, etc.
-    return NextResponse.json(mockInvoices)
+    const { invoiceId } = params
+    
+    // In production, this would fetch from Firestore
+    const invoice = mockInvoices[invoiceId]
+    
+    if (!invoice) {
+      return NextResponse.json(
+        { error: 'Invoice not found' },
+        { status: 404 }
+      )
+    }
+    
+    return NextResponse.json(invoice)
+    
   } catch (error) {
-    console.error('Error fetching invoices:', error)
+    console.error('Error fetching invoice:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
