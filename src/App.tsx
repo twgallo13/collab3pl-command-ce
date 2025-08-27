@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
+import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { toast } from 'sonner'
 
 interface SidebarProps {
@@ -120,7 +121,9 @@ function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
 function DashboardContent() {
   const [validationResults, setValidationResults] = useKV<ValidationResponse | null>('validation-results', null)
+  const [commitResults, setCommitResults] = useKV<CommitResponse | null>('commit-results', null)
   const [isValidating, setIsValidating] = useState(false)
+  const [isCommitting, setIsCommitting] = useState(false)
 
   // Mock validation request for demonstration
   const handleTestValidation = async () => {
@@ -166,7 +169,36 @@ function DashboardContent() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  // Mock commit request for demonstration
+  const handleTestCommit = async () => {
+    if (!validationResults || validationResults.status === 'invalid') {
+      toast.error('Cannot commit - validation must pass first')
+      return
+    }
+    
+    setIsCommitting(true)
+    
+    try {
+      const mockCommitRequest: CommitRequest = {
+        version_id: validationResults.version_id,
+        mode: 'replace'
+      }
+      
+      const result = await commitImports(mockCommitRequest)
+      setCommitResults(result)
+      
+      toast.success('Commit completed successfully', {
+        description: `Import ID: ${result.import_id}`
+      })
+      
+    } catch (error) {
+      toast.error('Commit failed', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setIsCommitting(false)
+    }
+  }
     switch (status) {
       case 'valid':
         return <CheckCircle className="h-4 w-4 text-green-600" />
@@ -260,11 +292,22 @@ function DashboardContent() {
             </p>
             <Button 
               onClick={handleTestValidation} 
-              disabled={isValidating}
+              disabled={isValidating || isCommitting}
               className="w-full"
             >
               {isValidating ? 'Validating...' : 'Run Validation Test'}
             </Button>
+            
+            {validationResults && validationResults.status !== 'invalid' && (
+              <Button 
+                variant="secondary"
+                onClick={handleTestCommit} 
+                disabled={isCommitting || isValidating}
+                className="w-full"
+              >
+                {isCommitting ? 'Committing...' : 'Test Commit (Replace)'}
+              </Button>
+            )}
             
             {validationResults && (
               <div className="space-y-2">
@@ -288,6 +331,23 @@ function DashboardContent() {
                     </div>
                   )}
                 </div>
+                
+                {commitResults && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-sm space-y-1">
+                      <div className="font-medium text-green-700">Commit Successful!</div>
+                      <div>Import ID: {commitResults.import_id}</div>
+                      <div>Mode: {commitResults.mode}</div>
+                      <div>
+                        Total changes: {
+                          Object.values(commitResults.counts).reduce((sum, counts) => 
+                            sum + counts.inserted + counts.updated + counts.deleted, 0
+                          )
+                        }
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

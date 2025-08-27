@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
@@ -14,10 +15,13 @@ import {
   FileText, 
   AlertTriangle,
   Check,
-  X
+  X,
+  Database,
+  Clock
 } from '@phosphor-icons/react'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { validateImports } from '@/api/benchmarks/imports/validate'
+import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { toast } from 'sonner'
 
 interface FileUploadState {
@@ -106,8 +110,11 @@ export function BenchmarkImportPage() {
     region_mappings: { file: null, url: null }
   })
   const [validationResults, setValidationResults] = useState<ValidationResponse | null>(null)
+  const [commitResults, setCommitResults] = useState<CommitResponse | null>(null)
   const [isValidating, setIsValidating] = useState(false)
+  const [isCommitting, setIsCommitting] = useState(false)
   const [canImport, setCanImport] = useState(false)
+  const [commitMode, setCommitMode] = useState<'replace' | 'upsert'>('replace')
 
   const fileConfigs = [
     { key: 'benchmark_rates', label: 'Benchmark Rates', fileName: 'benchmark_rates.csv' },
@@ -198,17 +205,37 @@ export function BenchmarkImportPage() {
       return
     }
 
-    toast.success('Import started', {
-      description: 'Benchmark data import has been queued for processing'
-    })
-    
-    // In a real implementation, this would make an API call to commit the import
-    // For now, just show success message
-    setTimeout(() => {
+    setIsCommitting(true)
+    setCommitResults(null)
+
+    try {
+      const commitRequest: CommitRequest = {
+        version_id: validationResults.version_id,
+        mode: commitMode
+      }
+
+      toast.loading('Committing benchmark data...', { id: 'commit-toast' })
+      
+      const result = await commitImports(commitRequest)
+      setCommitResults(result)
+
       toast.success('Import completed successfully', {
-        description: `Version ${validationResults.version_id} has been imported`
+        id: 'commit-toast',
+        description: `Version ${result.version_id} has been committed with import ID: ${result.import_id}`
       })
-    }, 2000)
+
+      // Reset form after successful commit
+      setCanImport(false)
+      setValidationResults(null)
+
+    } catch (error) {
+      toast.error('Import failed', {
+        id: 'commit-toast',
+        description: error instanceof Error ? error.message : 'Unknown error occurred during commit'
+      })
+    } finally {
+      setIsCommitting(false)
+    }
   }
 
   const getStatusIcon = (status: string) => {
@@ -267,8 +294,29 @@ export function BenchmarkImportPage() {
                 placeholder="e.g., v2025Q3"
                 value={versionId}
                 onChange={(e) => setVersionId(e.target.value)}
-                disabled={isValidating}
+                disabled={isValidating || isCommitting}
               />
+            </div>
+
+            {/* Import Mode Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="commit-mode" className="text-sm font-medium">
+                Import Mode
+              </Label>
+              <Select value={commitMode} onValueChange={(value: 'replace' | 'upsert') => setCommitMode(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select import mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="replace">Replace - Replace all existing data</SelectItem>
+                  <SelectItem value="upsert">Upsert - Update existing, insert new</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {commitMode === 'replace' 
+                  ? 'All existing benchmark data will be replaced with the new data'
+                  : 'Existing records will be updated, new records will be inserted'}
+              </p>
             </div>
 
             {/* File Uploads */}
@@ -281,7 +329,7 @@ export function BenchmarkImportPage() {
                   fileName={config.fileName}
                   value={files[config.key]}
                   onChange={(state) => updateFileState(config.key, state)}
-                  disabled={isValidating}
+                  disabled={isValidating || isCommitting}
                 />
               ))}
             </div>
@@ -290,7 +338,7 @@ export function BenchmarkImportPage() {
             <div className="flex gap-3 pt-4 border-t border-border">
               <Button
                 onClick={handleValidateFiles}
-                disabled={!isValidationPossible() || isValidating}
+                disabled={!isValidationPossible() || isValidating || isCommitting}
                 className="flex-1"
               >
                 {isValidating ? 'Validating...' : 'Validate Files'}
@@ -298,10 +346,10 @@ export function BenchmarkImportPage() {
               <Button
                 variant="secondary"
                 onClick={handleImportCommit}
-                disabled={!canImport || isValidating}
+                disabled={!canImport || isValidating || isCommitting}
                 className="flex-1"
               >
-                Import (Commit)
+                {isCommitting ? 'Committing...' : `Import (${commitMode})`}
               </Button>
             </div>
 
@@ -488,6 +536,85 @@ export function BenchmarkImportPage() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Commit Results */}
+      {commitResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Import Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="font-medium">Import completed successfully</span>
+              <Badge className="bg-green-100 text-green-800 border-green-200">Committed</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Import ID:</span>
+                <div className="text-muted-foreground font-mono">{commitResults.import_id}</div>
+              </div>
+              <div>
+                <span className="font-medium">Version:</span>
+                <div className="text-muted-foreground">{commitResults.version_id}</div>
+              </div>
+              <div>
+                <span className="font-medium">Mode:</span>
+                <div className="text-muted-foreground capitalize">{commitResults.mode}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              {Object.entries(commitResults.counts).map(([fileName, counts]) => (
+                <div key={fileName} className="border border-border rounded-lg p-3">
+                  <h4 className="font-medium text-sm mb-2 capitalize">
+                    {fileName.replace(/_/g, ' ')}
+                  </h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span>Inserted:</span>
+                      <span className="text-green-600 font-medium">{counts.inserted}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Updated:</span>
+                      <span className="text-blue-600 font-medium">{counts.updated}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Deleted:</span>
+                      <span className="text-red-600 font-medium">{counts.deleted}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {commitResults.warnings.length > 0 && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-medium text-yellow-800 mb-2 flex items-center gap-2">
+                  <Warning className="h-4 w-4" />
+                  Import Warnings ({commitResults.warnings.length})
+                </h4>
+                <div className="space-y-1">
+                  {commitResults.warnings.map((warning, index) => (
+                    <div key={index} className="text-sm text-yellow-700">
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Completed at {new Date(commitResults.timestamp).toLocaleString()}</span>
+            </div>
           </CardContent>
         </Card>
       )}

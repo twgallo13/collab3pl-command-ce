@@ -26,15 +26,20 @@
 
 **Critical Path**: 
 1. User navigates to Import Benchmarks page
-2. User enters version ID for the import
+2. User enters version ID and selects import mode (replace/upsert)
 3. User uploads 5 required CSV files
+4. User initiates validation process
+5. System validates data and displays results
+6. If validation passes, user commits the import
+7. System processes the import and displays completion status
 4. System validates files and displays results
 5. If validation passes, user commits the import
 
 **Key Moments**: 
 1. File validation feedback - users need immediate, clear feedback about data quality
 2. Error resolution guidance - when issues are found, users need specific, actionable information
-3. Import confirmation - users need confidence that the import completed successfully
+3. Import mode selection - users need to understand the difference between replace and upsert modes
+4. Import confirmation - users need confidence that the import completed successfully with detailed results
 
 ## Essential Features
 
@@ -48,6 +53,11 @@
 - **Purpose**: Enable data versioning and rollback capabilities
 - **Success Criteria**: Version ID is captured and associated with the import
 
+### Import Mode Selection
+- **Functionality**: Allow users to choose between "replace" (complete replacement) or "upsert" (update existing, insert new) modes
+- **Purpose**: Provide flexibility in how data updates are applied to the database
+- **Success Criteria**: Mode selection affects the import behavior and is clearly communicated to the user
+
 ### Comprehensive Validation
 - **Functionality**: Validate data structure, types, business rules, and cross-file references
 - **Purpose**: Prevent corrupted or invalid data from entering the system
@@ -59,9 +69,14 @@
 - **Success Criteria**: Users can quickly identify and address any data issues
 
 ### Import Execution
-- **Functionality**: Commit validated data to the system after user confirmation
-- **Purpose**: Complete the data import process safely
-- **Success Criteria**: Data is imported successfully without system errors
+- **Functionality**: Commit validated data to the system after user confirmation with full audit trail
+- **Purpose**: Complete the data import process safely with comprehensive tracking
+- **Success Criteria**: Data is imported successfully with detailed results showing inserted/updated/deleted record counts
+
+### Audit and Tracking
+- **Functionality**: Create detailed audit records for each import operation including timing, user, and data change counts
+- **Purpose**: Provide accountability and traceability for all data changes
+- **Success Criteria**: Complete audit trail is maintained for compliance and troubleshooting
 
 ## Design Direction
 
