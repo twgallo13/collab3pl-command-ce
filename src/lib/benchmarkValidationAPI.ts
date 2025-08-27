@@ -1,8 +1,7 @@
 import { ValidationService, ValidationResult, REQUIRED_HEADERS } from '@/lib/validationService';
 
-
-exp
-  dry_run?: boolean;
+/**
+ * Request interface for benchmark validation API
  */
 export interface ValidationRequest {
   version_id: string;
@@ -10,42 +9,42 @@ export interface ValidationRequest {
   files: {
     benchmark_rates: string;
     value_added_options: string;
-  valid_rows: number;
+    category_mappings: string;
     industry_sources: string;
     region_mappings: string;
   };
- 
+}
 
 /**
-    new_records: number;
-   
+ * Per-file validation result
+ */
 export interface PerFileResult {
   status: 'valid' | 'invalid' | 'warnings';
   rows_processed: number;
-  status: 'valid' | '
-  per_file: {
-    value_added_opt
-    industry_sources:
- 
-
+  valid_rows: number;
+  invalid_rows: number;
+  errors: string[];
+  warnings: string[];
 }
-/**
- * 
-async function fetchAndParseC
-  await new Promis
-  // For demonstra
-    return [
-        id: '
-        rateType: 'per_p
-        currency: 'USD',
-        expirationDate: '2024-1
-    
- 
 
-   
-        currency: 'USD',
-   
-        isActive: 'true'
+/**
+ * Diff calculation result for dry run
+ */
+export interface DiffResult {
+  inserts: number;
+  updates: number;
+  deletes: number;
+  details: {
+    new_records: number;
+    modified_records: number;
+    deprecated_records: number;
+  };
+}
+
+/**
+ * Complete validation response
+ */
+export interface ValidationResponse {
   status: 'valid' | 'invalid' | 'warnings';
   version_id: string;
   per_file: {
@@ -54,7 +53,7 @@ async function fetchAndParseC
     category_mappings: PerFileResult;
     industry_sources: PerFileResult;
     region_mappings: PerFileResult;
-    
+  };
   errors: string[];
   warnings: string[];
   diff?: DiffResult;
@@ -90,202 +89,152 @@ async function fetchAndParseCSV(url: string): Promise<Record<string, any>[]> {
         baseRate: '0.7500',
         currency: 'USD',
         effectiveDate: '2024-01-01',
+        expirationDate: '2024-12-31',
         regionCode: 'US-EAST',
         industryCode: 'ECOMMERCE',
         isActive: 'true'
       }
-functi
-  d
-  
-  
-  if (data.l
-    con
-  }
-  // Validate each row
-    const rowNumber = index + 2; // A
-    // Data type validation
-    results.push(typeValidatio
-    // Business rules valid
-    results.push(businessVali
-  
-  const combined = ValidationServ
-  // Determine overall s
-  if (c
-  } el
+    ];
   }
   
-    rows_processed: combined.rowsProcessed
-    invalid_
-    war
+  if (url.includes('value_added_options')) {
+    return [
+      {
+        id: 'VAO001',
+        optionName: 'gift_wrapping',
+        baseRate: '5.0000',
+        currency: 'USD',
+        isActive: 'true'
+      }
+    ];
+  }
+  
+  if (url.includes('category_mappings')) {
+    return [
+      {
+        categoryCode: 'RETAIL',
+        categoryName: 'Retail Operations',
+        isActive: 'true'
+      }
+    ];
+  }
+  
+  if (url.includes('industry_sources')) {
+    return [
+      {
+        sourceTag: 'RETAIL',
+        sourceName: 'Retail Industry',
+        isActive: 'true'
+      }
+    ];
+  }
+  
+  if (url.includes('region_mappings')) {
+    return [
+      {
+        regionCode: 'US-WEST',
+        regionName: 'United States West Coast',
+        isActive: 'true'
+      }
+    ];
+  }
+  
+  return [];
 }
+
 /**
+ * Validates a single file's data and returns structured results
  */
-  benchmarkRates: Record<string, any>[],
-  categoryMappings: Record<string, any>[],
-  regionMappings: Record<string, any>[
-  // Simulate diff calculation by a
+function validateFileData(data: Record<string, any>[], fileType: string, fileName: string): PerFileResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
   
-    benchmarkRates.lengt
-    cat
-    re
-  }
-  
-  
-    inserts:
-    del
-      new_records: i
-      deprecated_records: delet
-  };
-
- * Benchmark Import Validat
- * This class provides the core fu
- * server-side API implementations.
-export class BenchmarkValidationAP
-  /**
-   * Thi
-  stati
-    if (!request.ver
-    }
-    // Validate all required file URLs are prov
-    for (const fileName of requiredFiles) {
-        throw new Error(`Mi
-    }
-    try {
-      const [
-        valueAddedOption
-       
-      
-   
-  
-      ]);
-      // Val
-      c
-      const industry
-      
-      const crossFileValidation = Va
-        industrySourcesData,
-      );
-      // Combine all errors and w
-        ...benchmarkRatesResult.errors
-        ...categoryMappingsResult.e
-        ...regionMapping
-      ];
-      c
-        ...valueAdde
-        ...industrySourcesResu
-        ...crossFileValidation.warni
-      
-      let overallStatus: 'valid' | 'i
-        overallStatus = 'invalid'
-        overallStatus = 'warnings';
-      
-      const response: Va
-       
-      
-  }
-  
-        erro
- 
-
-   
-          valueAddedOptionsData,
-   
-        );
-      
-      
-      console.erro
-    }
-  
-  
-  static getDocumentation() {
-      endpoint: '/api/be
-      description: 'Validates benchmark data im
-        version_id: 'string (required)',
-        files: {
+  if (data.length === 0) {
+    errors.push(`${fileName}: File appears to be empty`);
+    return {
+      status: 'invalid',
+      rows_processed: 0,
+      valid_rows: 0,
+      invalid_rows: 0,
+      errors,
+      warnings
+    };
   }
   
   // Validate each row
-      response_structure: {
-        version_id: 'string',
+  let validRows = 0;
+  data.forEach((row, index) => {
+    const rowNumber = index + 2; // Assuming header is row 1
     
     // Data type validation
-    };
-}
-/**
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
+    const typeValidation = ValidationService.validateDataTypes(row, rowNumber);
+    errors.push(...typeValidation.errors);
+    warnings.push(...typeValidation.warnings);
+    
+    // Business rules validation
+    const businessValidation = ValidationService.validateBusinessRules(row, rowNumber);
+    errors.push(...businessValidation.errors);
+    warnings.push(...businessValidation.warnings);
+    
+    if (typeValidation.errors.length === 0 && businessValidation.errors.length === 0) {
+      validRows++;
+    }
+  });
+  
+  const combinedResult = ValidationService.combineValidationResults([]);
+  
+  // Determine overall status
+  let status: 'valid' | 'invalid' | 'warnings' = 'valid';
+  if (errors.length > 0) {
+    status = 'invalid';
+  } else if (warnings.length > 0) {
+    status = 'warnings';
   }
-
-
-
-
-
-
-
-
-
+  
+  return {
+    status,
+    rows_processed: data.length,
+    valid_rows: validRows,
+    invalid_rows: data.length - validRows,
+    errors,
+    warnings
+  };
 }
 
 /**
-
+ * Calculates diff for dry run mode
  */
-
+function calculateDiff(
   benchmarkRates: Record<string, any>[],
-
+  valueAddedOptions: Record<string, any>[],
   categoryMappings: Record<string, any>[],
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  industrySources: Record<string, any>[],
+  regionMappings: Record<string, any>[]
+): DiffResult {
+  // Simulate diff calculation by analyzing data counts
+  const totalNewRecords = benchmarkRates.length + valueAddedOptions.length + 
+                         categoryMappings.length + industrySources.length + 
+                         regionMappings.length;
+  
+  return {
+    inserts: totalNewRecords,
+    updates: Math.floor(totalNewRecords * 0.1), // Simulate 10% updates
+    deletes: Math.floor(totalNewRecords * 0.05), // Simulate 5% deletions
+    details: {
+      new_records: totalNewRecords,
+      modified_records: Math.floor(totalNewRecords * 0.1),
+      deprecated_records: Math.floor(totalNewRecords * 0.05)
+    }
   };
+}
 
-
-
-
-
-
-
+/**
+ * Benchmark Import Validation API
+ * This class provides the core functionality for validating benchmark imports in both client and
  * server-side API implementations.
-
-
-
+ */
+export class BenchmarkValidationAPI {
   /**
-
    * This is the main API endpoint implementation that orchestrates the validation process
    */
   static async validateImport(request: ValidationRequest): Promise<ValidationResponse> {
