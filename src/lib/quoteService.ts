@@ -1,204 +1,205 @@
 /**
  * Quote Service - Handles logistics pricing calculations
-
-exp
+ */
 
 // Core data interfaces
 export interface BenchmarkRate {
   service_type: string
   unit_type: string
   base_rate: number
-  destination_country:
+  origin_zip3?: string
   origin_state?: string
-}
+  origin_country: string
   destination_zip3?: string
   destination_state?: string
   destination_country: string
   effective_start_date: string
   effective_end_date: string
+}
 
-
+export interface ValueAddedOption {
+  service_code: string
   description: string
+  base_rate: number
+  unit_type: string
+  category: string
 }
-export interface Quot
-  fulfillment: numb
+
+export interface QuoteLineItem {
+  category: string
+  service_code: string
+  description: string
+  quantity: number
+  unit_rate: number
+  extended_cost: number
+}
+
+export interface QuoteSubtotals {
+  receiving: number
+  fulfillment: number
+  storage: number
   vas: number
-  total_discountabl
+  surcharges: number
+  total_discountable: number
+  total_non_discountable: number
 }
 
+export interface QuoteDiscount {
+  type: 'flat' | 'percentage'
+  amount: number
+  description: string
+  applied_to_amount: number
+}
+
+export interface QuoteTotals {
+  total_discount: number
   total: number
-
-  savings_amount: numb
 }
-export interface Q
-  customer_id: stri
-  origin: {
- 
 
-    zip3?: string
-    country: string
-  services: {
-      pallets?: numbe
-      pieces?: number
- 
+export interface QuoteComparison {
+  savings_amount: number
+  savings_percentage: number
+}
 
-    }
-      pallets?: num
-    }
-      service_cod
-    }>
-  discounts?: Array<
-    amount: number
-  }>
-
-
+export interface QuoteRequest {
+  version_id: string
   customer_id: string
-  generated_at: string
-    outbound: s
- 
-
-  comparison?: QuoteComparison
-
-async function loadBenchmark
- 
-
-      origin_country: 'US',
-      destination_co
-      effective_start
-    },
-      servi
-      base_rate: 
-      origin_state
-      destination_s
-   
-    {
-      unit_type: 
-      origin_count
-      effective_sta
-   
-}
-// Simulate loadi
-  return [
-      service_code: 'L
-      unit_type: 'pie
-     
-    {
-      description: 'G
-      category: 'VAS
-    }
-}
-/**
- * 1. ZIP3 match (high
- * 3. Country match 
-funct
-  serviceType: st
-  origin: { zip3?: string;
-): BenchmarkRate | nul
-  let 
-   
-           rate.desti
-  if (bestMatch) return bestMat
-  // Priority 2: S
-    return rate.service
-    
- 
-
-
-  bestMatch = rate
-           rate.unit
-           rate.desti
-           !rate.origin_
-           !rate.desti
-
-}
-/**
- */
-  const subtotals: QuoteSub
-    fulfillment: 0,
-    vas: 0,
-    total_discountable: 0,
- 
-
-      case 'Receiving':
-        break
-        su
-    {
-        break
-      unit_type: 'pallet',
-      case 'Surcharges'
-        break
-    
-    subtotals.total_discountable
-
-}
-/**
-    },
-    {
-): { discountsApplied: QuoteDiscou
-  let remainingDiscountab
-
-  const sortedDiscounts = [
-    if (a.type === 'perce
-  })
-  for (const discount of sorte
-
-      appliedAmount = Math.min(discoun
-      
-    {
-    }
-    if (appliedAmount > 0
-        type: discount
-        description: discou
-      })
-      remainingDiscountableAmount -= appl
-    }
-
-}
-/
-
-  // Load benchmark data
-  const vasOptions = await loadValueAddedOptions()
-  return [
-    {
-    const { pallets = 0, cartons =
-    if (pallets > 0) {
-      if (rate) {
-          category: 'R
-          description
-    },
-     
-    }
-    if (cartons > 0) {
-      // Use pallet rate 
-      if (fallbackRate
-        lines.push({
-    }
-   
- 
-
+  effective_date: string
+  origin: {
+    zip3?: string
+    state?: string
+    country: string
   }
-  // Calculate fulfillment costs
-    const { orders = 0, lines: orde
-    if (orders > 0) {
-      if (rate) {
+  destination: {
+    zip3?: string
+    state?: string
+    country: string
+  }
+  services: {
+    receiving?: {
+      pallets?: number
+      cartons?: number
+      pieces?: number
+    }
+    fulfillment?: {
+      orders?: number
+      lines?: number
+      pieces?: number
+    }
+    storage?: {
+      pallets?: number
+      sq_ft?: number
+    }
+    vas?: Array<{
+      service_code: string
+      quantity: number
+    }>
+  }
+  discounts?: Array<{
+    type: 'flat' | 'percentage'
+    amount: number
+    description: string
+  }>
+}
+
+export interface QuoteResponse {
+  quote_id: string
+  version_id: string
+  customer_id: string
+  effective_date: string
+  generated_at: string
+  lanes: {
+    outbound: string
+  }
+  lines: QuoteLineItem[]
+  subtotals: QuoteSubtotals
+  discounts_applied: QuoteDiscount[]
+  totals: QuoteTotals
+  comparison?: QuoteComparison
+}
+
+// Simulate loading benchmark rates from database
+async function loadBenchmarkRates(): Promise<BenchmarkRate[]> {
+  // Mock data for demonstration
+  return [
+    {
+      service_type: 'receiving',
+      unit_type: 'pallet',
+      base_rate: 25.50,
+      origin_country: 'US',
+      destination_country: 'US',
+      effective_start_date: '2024-01-01',
+      effective_end_date: '2024-12-31'
+    },
+    {
+      service_type: 'fulfillment',
+      unit_type: 'order',
+      base_rate: 3.75,
+      origin_state: 'CA',
+      destination_state: 'TX',
+      origin_country: 'US',
+      destination_country: 'US',
+      effective_start_date: '2024-01-01',
+      effective_end_date: '2024-12-31'
+    },
+    {
+      service_type: 'storage',
+      unit_type: 'sq_ft',
+      base_rate: 1.25,
+      origin_country: 'US',
+      destination_country: 'US',
+      effective_start_date: '2024-01-01',
+      effective_end_date: '2024-12-31'
+    }
+  ]
+}
+
+// Simulate loading value-added options from database
+async function loadValueAddedOptions(): Promise<ValueAddedOption[]> {
+  return [
+    {
+      service_code: 'LABEL_APPLY',
+      unit_type: 'piece',
+      base_rate: 0.50,
+      description: 'Label Application',
+      category: 'VAS'
+    },
+    {
+      service_code: 'GIFT_WRAP',
+      unit_type: 'piece',
+      base_rate: 2.50,
+      description: 'Gift Wrapping',
+      category: 'VAS'
+    }
+  ]
+}
+
+/**
+ * Find the best matching rate using lane resolution logic:
+ * 1. ZIP3 match (highest priority)
+ * 2. State match
+ * 3. Country match (lowest priority)
  */
-          description:
-          unit_rate: rate
-        })
+function findBestRate(
+  rates: BenchmarkRate[],
+  serviceType: string,
   unitType: string,
+  origin: { zip3?: string; state?: string; country: string },
+  destination: { zip3?: string; state?: string; country: string }
+): BenchmarkRate | null {
+  let bestMatch: BenchmarkRate | null = null
 
-  if (request.services.storage) {
-
-      const rate = findBest
-  let bestMatch = rates.find(rate => {
+  // Priority 1: ZIP3 match
+  bestMatch = rates.find(rate => {
     return rate.service_type === serviceType &&
            rate.unit_type === unitType &&
            rate.origin_zip3 === origin.zip3 &&
            rate.destination_zip3 === destination.zip3
-  })
-  // Calculate VAS costs
+  }) || null
+  
+  if (bestMatch) return bestMatch
 
-      if (vasOption) {
+  // Priority 2: State match
   bestMatch = rates.find(rate => {
     return rate.service_type === serviceType &&
            rate.unit_type === unitType &&
@@ -206,10 +207,11 @@ funct
            rate.destination_state === destination.state &&
            !rate.origin_zip3 &&
            !rate.destination_zip3
-  })
-    ? applyDiscounts(subtotals, r
+  }) || null
+  
+  if (bestMatch) return bestMatch
 
-  const totals: QuoteTotals = 
+  // Priority 3: Country match
   bestMatch = rates.find(rate => {
     return rate.service_type === serviceType &&
            rate.unit_type === unitType &&
@@ -219,34 +221,34 @@ funct
            !rate.origin_state &&
            !rate.destination_zip3 &&
            !rate.destination_state
-  })
+  }) || null
 
-    response.comparison = 
+  return bestMatch
 }
 
-  r
-
-
-
-
+/**
+ * Calculate subtotals for each category of services
+ */
+function calculateSubtotals(lines: QuoteLineItem[]): QuoteSubtotals {
+  const subtotals: QuoteSubtotals = {
     receiving: 0,
-
+    fulfillment: 0,
     storage: 0,
-
+    vas: 0,
     surcharges: 0,
+    total_discountable: 0,
+    total_non_discountable: 0
+  }
 
-
-
-
-
-
-
-
-
-      case 'Fulfillment':
-
+  lines.forEach(line => {
+    switch (line.category) {
+      case 'Receiving':
+        subtotals.receiving += line.extended_cost
         break
-
+      case 'Fulfillment':
+        subtotals.fulfillment += line.extended_cost
+        break
+      case 'Storage':
         subtotals.storage += line.extended_cost
         break
       case 'VAS':
