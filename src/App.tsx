@@ -199,6 +199,8 @@ function DashboardContent() {
       setIsCommitting(false)
     }
   }
+
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'valid':
         return <CheckCircle className="h-4 w-4 text-green-600" />
