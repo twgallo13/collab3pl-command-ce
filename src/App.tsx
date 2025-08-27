@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
+import { QuoteGeneratorPage } from '@/components/QuoteGeneratorPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -39,6 +40,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { id: 'wms', label: 'WMS', icon: Package },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'clients', label: 'Clients', icon: Users },
+    { id: 'quote-generator', label: 'Quote Generator', icon: Calculator },
     { id: 'import', label: 'Import Benchmarks', icon: Upload },
     { id: 'settings', label: 'Settings', icon: Gear },
   ]
@@ -668,6 +670,8 @@ export default function App() {
     switch (activeItem) {
       case 'import':
         return <BenchmarkImportPage />
+      case 'quote-generator':
+        return <QuoteGeneratorPage />
       case 'dashboard':
       default:
         return <DashboardContent />
