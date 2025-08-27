@@ -1,13 +1,13 @@
 /**
- * CSV Export API Route
+ * Exports invoice data
  * Exports invoice data in CSV format
  */
 
-import { Invoice } from '@/types/invoices'
+  
 
-// Mock invoice data (matches the structure from PDF export)
-function getMockInvoice(invoiceId: string): Invoice | null {
-  if (!invoiceId) return null
+      status: 'issued',
+      createdOn: '2024-01-15T10:00:00Z',
+      version: 1
   
   return {
     meta: {
@@ -26,116 +26,116 @@ function getMockInvoice(invoiceId: string): Invoice | null {
         line1: '123 Business Street',
         line2: 'Suite 100',
         city: 'Los Angeles',
-        state: 'CA',
+        zipCode: '90
         zip: '90210',
         country: 'United States'
       },
-      billingContact: {
+      periodEnd: '2024-
         name: 'John Smith',
-        email: 'billing@acme.com',
+      terms: 15
         phone: '+1 (555) 123-4567'
-      },
+      qu
       billingAddress: {
         line1: '123 Business Street',
         line2: 'Suite 100',
         city: 'Los Angeles',
         state: 'CA',
-        zipCode: '90210',
+        quantity: 100,
         country: 'United States'
-      }
+       
     },
-    dateRange: {
+      {
       periodStart: '2024-01-01',
       periodEnd: '2024-01-31',
       issuedOn: '2024-02-01',
-      dueOn: '2024-02-16',
+        unit: 'orders',
       terms: 15
-    },
+      
     references: {
       quoteId: 'QTE-2024-001',
       rateCardVersionId: 'v2024.1'
-    },
+      
     lineItems: [
-      {
-        id: '1',
-        category: 'receiving',
-        serviceCode: 'REC_PALLET',
-        description: 'Pallet Receiving',
-        quantity: 100,
-        unit: 'pallets',
-        unitRate: 15.00,
-        extendedCost: 1500.00,
-        discountable: true
-      },
-      {
-        id: '2',
-        category: 'fulfillment',
-        serviceCode: 'FUL_ORDER',
-        description: 'Order Fulfillment',
-        quantity: 500,
-        unit: 'orders',
-        unitRate: 3.50,
-        extendedCost: 1750.00,
-        discountable: true
-      },
-      {
-        id: '3',
-        category: 'storage',
-        serviceCode: 'STO_SQFT',
-        description: 'Storage per Sq Ft',
-        quantity: 2500,
-        unit: 'sq_ft',
-        unitRate: 0.85,
-        extendedCost: 2125.00,
-        discountable: true
-      },
-      {
-        id: '4',
-        category: 'vas',
-        serviceCode: 'VAS_LABEL',
-        description: 'Label Application',
-        quantity: 250,
-        unit: 'labels',
-        unitRate: 0.50,
-        extendedCost: 125.00,
-        discountable: true
-      }
-    ],
-    discounts: [
-      {
-        id: 'disc1',
-        type: 'percentage',
-        amount: 5,
-        description: 'Volume Discount (5%)',
-        applyTo: 'all',
-        appliedAmount: 253.75
-      }
-    ],
-    tax: {
-      enabled: true,
-      rate: 8.5,
-      basis: 'discounted_subtotal'
-    },
+      b
     rounding: {
-      mode: 'standard',
       precision: 2
-    },
     totals: {
-      subtotal: 5075.00,
       nonDiscountableSubtotal: 0.00,
-      discountAmount: 253.75,
-      discountedSubtotal: 4821.25,
-      taxAmount: 409.81,
-      grandTotal: 5231.06
-    },
+      discountedSubtot
+      grandTotal: 5231.0
     notes: {
-      vendorVisible: 'Thank you for your business. Payment terms are Net 15.',
-      internal: 'Client has been consistently paying on time.',
-      history: ['Invoice created', 'Invoice issued']
+      internal: 'Client has be
     },
-    audit: {
-      events: [
-        {
+      ev
+       
+          userId
+        }
+      inputsSnapshot: {}
+    exports: {
+    }
+}
+function formatCurrency
+}
+function escapeCSVField(fi
+  // If 
+    ret
+  return str
+
+  const lines: string[] = []
+  // Add header information
+  lines.push('')
+  lines.push(`Client,$
+  lines.push(`Issued Da
+  lines.push(`Currency,${escap
+  
+  lines.
+  
+    lines.push([
+      escapeCSVField(ite
+      escapeCSVField(item.descrip
+      escapeCSVField(item.unit),
+      escapeCSVField(i
+    ].join(','))
+  
+  
+  if (invoice.discounts.le
+    lin
+    fo
+        escapeCS
+       
+        escapeCSVFie
+      ].join(','))
+    
+  }
+  // Add totals section
+  lines.push('Description,Amo
+  lines
+  
+    lines.
+  
+  
+  
+  if (
+    lines.push(
+  
+}
+export
+    const { i
+    // Fetch invoice dat
+    
+      return new Response(JSO
+        headers: { 'Content-Type':
+    }
+    // Generate CSV conte
+    
+    const no
+    return new Response(JSON.stringify({
+      filename: `${invoice.meta.invoiceId}.csv`,
+      exportedOn: now
+      
+    })
+  } catch (erro
+    retur
           timestamp: '2024-01-15T10:00:00Z',
           event: 'created',
           userId: 'admin',
@@ -276,8 +276,7 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
       error: 'Failed to generate CSV export',
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
-      status: 500,
+
       headers: { 'Content-Type': 'application/json' }
-    })
+
   }
-}
