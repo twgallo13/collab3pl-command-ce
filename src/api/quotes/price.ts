@@ -3,7 +3,7 @@
  * Based on section A.7 of the collab3pl V9.5 Final document
  */
 
-import { priceQuote, validateQuoteRequest, QuoteRequest, QuoteResponse } from '@/lib/quoteService'
+import { priceQuote, QuoteRequest, QuoteResponse } from '@/lib/quoteService'
 
 /**
  * Service class for handling quote pricing API operations
@@ -14,9 +14,9 @@ export class QuotePricingService {
    */
   static async processQuoteRequest(request: QuoteRequest): Promise<QuoteResponse> {
     try {
-      // Validate the request structure
-      if (!validateQuoteRequest(request)) {
-        throw new Error('Invalid quote request structure')
+      // Validate basic required fields
+      if (!request.version_id || !request.customer_id || !request.effective_date) {
+        throw new Error('Missing required fields: version_id, customer_id, and effective_date are required')
       }
 
       // Call the quote service to generate the pricing
