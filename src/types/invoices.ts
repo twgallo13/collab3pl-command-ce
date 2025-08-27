@@ -1,13 +1,13 @@
 /**
  * Invoice data contracts for the Collab3PL billing system
- * Based on the Firestore Document Shape from section B.2.1
- */
 
-export interface Invoice {
-  meta: {
-    invoiceId: string
-    status: 'draft' | 'pending' | 'sent' | 'paid' | 'overdue' | 'cancelled'
-    currency: string
+  m
+
+    createdOn: string // I
+    versi
+
+    accountId: string
+    billingContact: 
     createdOn: string // ISO timestamp
     lastModifiedOn: string // ISO timestamp
     version: number
@@ -18,26 +18,26 @@ export interface Invoice {
     name: string
     billingContact: {
       name: string
-      email: string
-      phone?: string
-    }
-    billingAddress: {
-      line1: string
-      line2?: string
-      city: string
-      state: string
-      postalCode: string
-      country: string
-    }
-    paymentTerms: string
-    taxId?: string
-  }
+    terms: string
 
-  dateRange: {
-    periodStart: string // ISO date
-    periodEnd: string // ISO date
-    issuedOn: string // ISO date
-    dueOn: string // ISO date
+    q
+    contractId?: stri
+  }
+  lineItems: Invoice
+  discounts: Invoi
+  tax: {
+    rate: number
+    amount?: number
+  }
+  rounding: {
+    precision: num
+
+
+    subtotalAf
+    totalBeforeRounding: number
+    grandTotal: number
+    amountPaid: number
+
     terms: string
   }
 
@@ -88,10 +88,10 @@ export interface Invoice {
     inputsSnapshot: {
       quoteData?: any
       rateCardData?: any
-      clientSettings?: any
+    lineIds?: string[]
       taxSettings?: any
-    }
-  }
+  ord
+  a
 
   exports: {
     pdfGeneratedOn?: string // ISO timestamp
@@ -102,31 +102,31 @@ export interface Invoice {
 }
 
 export interface InvoiceLineItem {
-  lineId: string
+      oldValue: 
   category: 'receiving' | 'fulfillment' | 'storage' | 'vas' | 'surcharges' | 'freight'
   serviceCode: string
   description: string
   quantity: number
   unitOfMeasure: string
-  unitRate: number
+}
   extendedCost: number
   discountable: boolean
   period: {
-    start: string // ISO date
+  periodEnd: string
     end: string // ISO date
-  }
+  i
   references: {
-    quoteLineId?: string
+  discounts?: Partial<In
     rateCardItemId?: string
     sourceDocument?: string
-  }
+  u
   metadata?: {
     [key: string]: any
   }
 }
 
 export interface InvoiceDiscount {
-  discountId: string
+  issuedAfter?: stri
   type: 'flat' | 'percentage'
   amount: number
   description: string
@@ -134,15 +134,15 @@ export interface InvoiceDiscount {
     scope: 'all' | 'category' | 'specific_lines'
     categories?: string[]
     lineIds?: string[]
-  }
+  h
   appliedAmount: number
-  order: number
+
 }
 
 export interface InvoiceNote {
   timestamp: string // ISO timestamp
   author: string
-  content: string
+  reference?: str
   type: 'system' | 'user' | 'client'
   visibility: 'internal' | 'client' | 'all'
 }
@@ -156,13 +156,13 @@ export interface InvoiceAuditEvent {
       field: string
       oldValue: any
       newValue: any
-    }[]
+
     metadata?: {
       [key: string]: any
     }
-  }
+
   ipAddress?: string
-  userAgent?: string
+
 }
 
 // Supporting types for invoice creation and updates
@@ -170,17 +170,17 @@ export interface CreateInvoiceRequest {
   clientId: string
   periodStart: string
   periodEnd: string
-  quoteId?: string
+
   rateCardVersionId: string
   includeVas?: boolean
   includeSurcharges?: boolean
   customLineItems?: Partial<InvoiceLineItem>[]
   discounts?: Partial<InvoiceDiscount>[]
-  notes?: string
+
 }
 
 export interface UpdateInvoiceRequest {
-  invoiceId: string
+
   updates: Partial<Pick<Invoice, 'lineItems' | 'discounts' | 'notes' | 'dateRange'>>
   reason?: string
 }
@@ -190,14 +190,14 @@ export interface InvoiceFilters {
   status?: Invoice['meta']['status']
   periodStart?: string
   periodEnd?: string
-  issuedAfter?: string
+
   issuedBefore?: string
-  dueAfter?: string
+
   dueBefore?: string
-  amountMin?: number
+
   amountMax?: number
-  currency?: string
-}
+
+
 
 export interface InvoiceListResponse {
   invoices: Invoice[]
@@ -208,22 +208,21 @@ export interface InvoiceListResponse {
 
 // Payment tracking types
 export interface InvoicePayment {
-  paymentId: string
+
   invoiceId: string
-  amount: number
+
   currency: string
   method: 'check' | 'ach' | 'wire' | 'credit_card' | 'other'
   receivedOn: string // ISO timestamp
   reference?: string
   notes?: string
-  processedBy: string
+
   status: 'pending' | 'cleared' | 'failed' | 'reversed'
-}
+
 
 export interface PaymentAllocation {
   paymentId: string
-  invoiceId: string
+
   allocatedAmount: number
   allocatedOn: string // ISO timestamp
   allocatedBy: string
-}
