@@ -1,67 +1,67 @@
 /**
  * Quote service implementation based on section A.7 of the collab3pl V9.5 Final document
- */
+// 
 
 // Type definitions for benchmark data
 export interface BenchmarkRate {
   service_type: string
   unit_type: string
-  base_rate: number
+  destination_zip3?
   origin_zip3?: string
-  origin_state?: string
+  effective_start_date:
   origin_country: string
   destination_zip3?: string
   destination_state?: string
   destination_country: string
   effective_start_date: string
-  effective_end_date: string
-}
-
-export interface ValueAddedOption {
-  service_code: string
-  description: string
-  unit_type: string
-  base_rate: number
-  category: string
-}
-
-// Quote-specific interfaces
-export interface QuoteLineItem {
-  category: string
-  service_code: string
-  description: string
   quantity: number
-  unit_type: string
-  unit_rate: number
-  extended_cost: number
-  discountable: boolean
-}
+ 
 
-export interface QuoteSubtotals {
+
   receiving: number
-  fulfillment: number
   storage: number
-  vas: number
-  surcharges: number
-  total_discountable: number
-  total_non_discountable: number
-}
+  surcharges: numbe
+  total_non_discoun
 
-export interface QuoteDiscount {
-  type: 'flat' | 'percentage'
-  amount: number
-  description: string
-  applied_to_amount: number
-}
+ 
 
+}
 export interface QuoteTotals {
-  subtotal: number
-  total_discount: number
-  total: number
+  total_discount: 
 }
+export interface Quot
+  savings_amount: 
+}
+export interface Qu
+  version_id: string
+  effective_date: strin
+ 
 
-export interface QuoteComparison {
-  benchmark_total: number
+  subtotals: QuoteSubtotals
+  totals: QuoteTota
+}
+export interface 
+  customer_id
+  origin: {
+    state?: string
+  }
+ 
+
+  services: {
+      pallets?: number
+      pieces?: n
+    fulfillment?: {
+      lines?: number
+ 
+
+    }
+      service_code
+    }>
+  discounts?: A
+ 
+
+
+async function loadBenchm
   savings_amount: number
   savings_percentage: number
 }
@@ -126,7 +126,7 @@ export interface QuoteRequest {
 // Mock data loaders (simulating database calls)
 async function loadBenchmarkRates(): Promise<BenchmarkRate[]> {
   // Simulate loading benchmark rates from database
-  return [
+  unitType
     {
       service_type: 'receiving',
       unit_type: 'pallet',
@@ -134,11 +134,11 @@ async function loadBenchmarkRates(): Promise<BenchmarkRate[]> {
       origin_country: 'US',
       destination_country: 'US',
       destination_state: 'CA',
-      destination_zip3: '902',
+  if (bestMatch) return bestMa
       effective_start_date: '2024-01-01',
       effective_end_date: '2024-12-31'
     },
-    {
+    r
       service_type: 'fulfillment',
       unit_type: 'order',
       base_rate: 2.75,
@@ -148,17 +148,17 @@ async function loadBenchmarkRates(): Promise<BenchmarkRate[]> {
       destination_zip3: '750',
       effective_start_date: '2024-01-01',
       effective_end_date: '2024-12-31'
-    },
+    !r
     {
       service_type: 'storage',
       unit_type: 'sq_ft',
-      base_rate: 0.85,
+}
       origin_country: 'US',
       destination_country: 'US',
       effective_start_date: '2024-01-01',
       effective_end_date: '2024-12-31'
     }
-  ]
+   
 }
 
 async function loadValueAddedOptions(): Promise<ValueAddedOption[]> {
@@ -170,7 +170,7 @@ async function loadValueAddedOptions(): Promise<ValueAddedOption[]> {
       unit_type: 'piece',
       base_rate: 0.25,
       category: 'VAS'
-    },
+      
     {
       service_code: 'GIFT_WRAP',
       description: 'Gift Wrapping',
@@ -178,7 +178,7 @@ async function loadValueAddedOptions(): Promise<ValueAddedOption[]> {
       base_rate: 3.50,
       category: 'VAS'
     }
-  ]
+   
 }
 
 /**
@@ -186,11 +186,11 @@ async function loadValueAddedOptions(): Promise<ValueAddedOption[]> {
  * 1. ZIP3 match (highest priority)
  * 2. State match 
  * 3. Country match (lowest priority)
- */
+): 
 function findBestRate(
   rates: BenchmarkRate[],
   serviceType: string,
-  unitType: string,
+    if (a.type === 
   origin: { zip3?: string; state?: string; country: string },
   destination: { zip3?: string; state?: string; country: string }
 ): BenchmarkRate | null {
@@ -200,7 +200,7 @@ function findBestRate(
     rate.unit_type === unitType &&
     rate.origin_zip3 === origin.zip3 &&
     rate.destination_zip3 === destination.zip3
-  )
+   
 
   if (bestMatch) return bestMatch
 
@@ -212,7 +212,7 @@ function findBestRate(
     rate.destination_state === destination.state &&
     !rate.origin_zip3 &&
     !rate.destination_zip3
-  )
+ */
 
   if (bestMatch) return bestMatch
 
@@ -226,7 +226,7 @@ function findBestRate(
     !rate.origin_state &&
     !rate.destination_zip3 &&
     !rate.destination_state
-  )
+   
 
   return bestMatch || null
 }
@@ -236,11 +236,11 @@ function findBestRate(
  */
 function calculateSubtotals(lines: QuoteLineItem[]): QuoteSubtotals {
   const subtotals: QuoteSubtotals = {
-    receiving: 0,
+            categ
     fulfillment: 0,
-    storage: 0,
+            qua
     vas: 0,
-    surcharges: 0,
+            extend
     total_discountable: 0,
     total_non_discountable: 0
   }
@@ -250,227 +250,226 @@ function calculateSubtotals(lines: QuoteLineItem[]): QuoteSubtotals {
       case 'Receiving':
         subtotals.receiving += line.extended_cost
         break
-      case 'Fulfillment':
+            category: 'St
         subtotals.fulfillment += line.extended_cost
-        break
+            q
       case 'Storage':
-        subtotals.storage += line.extended_cost
-        break
-      case 'VAS':
-        subtotals.vas += line.extended_cost
-        break
-      case 'Surcharges':
-        subtotals.surcharges += line.extended_cost
-        break
-    }
 
-    if (line.discountable) {
-      subtotals.total_discountable += line.extended_cost
-    } else {
-      subtotals.total_non_discountable += line.extended_cost
-    }
-  })
 
-  return subtotals
-}
 
-/**
- * Applies discounts according to the specified order: flat first, then percentage
- */
-function applyDiscounts(
-  discounts: Array<{ type: 'flat' | 'percentage'; amount: number; description: string }>,
-  totalDiscountable: number
-): { applied: QuoteDiscount[]; totalDiscount: number } {
-  let totalDiscount = 0
-  const appliedDiscounts: QuoteDiscount[] = []
 
-  // Sort discounts: flat first, then percentage
-  const sortedDiscounts = [...discounts].sort((a, b) => {
-    if (a.type === 'flat' && b.type === 'percentage') return -1
-    if (a.type === 'percentage' && b.type === 'flat') return 1
-    return 0
-  })
 
-  for (const discount of sortedDiscounts) {
-    let discountAmount = 0
-    
-    if (discount.type === 'flat') {
-      discountAmount = Math.min(discount.amount, totalDiscountable - totalDiscount)
-    } else {
-      discountAmount = Math.min(
-        (discount.amount / 100) * totalDiscountable,
-        totalDiscountable - totalDiscount
-      )
-    }
 
-    if (discountAmount > 0) {
-      appliedDiscounts.push({
-        type: discount.type,
-        amount: discount.amount,
-        description: discount.description,
-        applied_to_amount: discountAmount
-      })
-      totalDiscount += discountAmount
-    }
-  }
 
-  return { applied: appliedDiscounts, totalDiscount }
-}
 
-/**
- * Main function to generate a logistics pricing quote
- */
-export async function priceQuote(request: QuoteRequest): Promise<QuoteResponse> {
-  try {
-    const benchmarkRates = await loadBenchmarkRates()
-    const valueAddedOptions = await loadValueAddedOptions()
-    const lines: QuoteLineItem[] = []
 
-    // Calculate receiving costs
-    if (request.services.receiving) {
-      const { pallets, cartons, pieces } = request.services.receiving
-      
-      if (pallets && pallets > 0) {
-        const rate = findBestRate(benchmarkRates, 'receiving', 'pallet', request.origin, request.destination)
-        if (rate) {
-          lines.push({
-            category: 'Receiving',
-            service_code: 'RECV_PALLET',
-            description: 'Pallet Receiving',
-            quantity: pallets,
-            unit_type: 'pallet',
-            unit_rate: rate.base_rate,
-            extended_cost: pallets * rate.base_rate,
-            discountable: true
-          })
-        }
-      }
-    }
 
-    // Calculate fulfillment costs
-    if (request.services.fulfillment) {
-      const { orders, lines: orderLines, pieces } = request.services.fulfillment
-      
-      if (orders && orders > 0) {
-        const rate = findBestRate(benchmarkRates, 'fulfillment', 'order', request.origin, request.destination)
-        if (rate) {
-          lines.push({
-            category: 'Fulfillment',
-            service_code: 'FULFILL_ORDER',
-            description: 'Order Fulfillment',
-            quantity: orders,
-            unit_type: 'order',
-            unit_rate: rate.base_rate,
-            extended_cost: orders * rate.base_rate,
-            discountable: true
-          })
-        }
-      }
-    }
 
-    // Calculate storage costs
-    if (request.services.storage) {
-      const { pallets, sq_ft } = request.services.storage
-      
-      if (sq_ft && sq_ft > 0) {
-        const rate = findBestRate(benchmarkRates, 'storage', 'sq_ft', request.origin, request.destination)
-        if (rate) {
-          lines.push({
-            category: 'Storage',
-            service_code: 'STORAGE_SQFT',
-            description: 'Storage (per sq ft)',
-            quantity: sq_ft,
-            unit_type: 'sq_ft',
-            unit_rate: rate.base_rate,
-            extended_cost: sq_ft * rate.base_rate,
-            discountable: true
-          })
-        }
-      }
-    }
 
-    // Calculate VAS costs
-    if (request.services.vas) {
-      for (const vasRequest of request.services.vas) {
-        const vasOption = valueAddedOptions.find(v => v.service_code === vasRequest.service_code)
-        if (vasOption) {
-          lines.push({
-            category: 'VAS',
-            service_code: vasOption.service_code,
-            description: vasOption.description,
-            quantity: vasRequest.quantity,
-            unit_type: vasOption.unit_type,
-            unit_rate: vasOption.base_rate,
-            extended_cost: vasRequest.quantity * vasOption.base_rate,
-            discountable: true
-          })
-        }
-      }
-    }
 
-    // Calculate subtotals
-    const subtotals = calculateSubtotals(lines)
 
-    // Apply discounts
-    const { applied: appliedDiscounts, totalDiscount } = applyDiscounts(
-      request.discounts || [],
-      subtotals.total_discountable
-    )
 
-    // Calculate totals
-    const totals: QuoteTotals = {
-      subtotal: subtotals.total_discountable + subtotals.total_non_discountable,
-      total_discount: totalDiscount,
-      total: subtotals.total_discountable + subtotals.total_non_discountable - totalDiscount
-    }
 
-    // Build lane description
-    const originDesc = request.origin.zip3 || request.origin.state || request.origin.country
-    const destDesc = request.destination.zip3 || request.destination.state || request.destination.country
 
-    const response: QuoteResponse = {
-      quote_id: `Q${Date.now()}`,
-      version_id: request.version_id,
-      customer_id: request.customer_id,
-      effective_date: request.effective_date,
-      generated_at: new Date().toISOString(),
-      lanes: {
-        outbound: `${originDesc} to ${destDesc}`
-      },
-      lines,
-      subtotals,
-      discounts_applied: appliedDiscounts,
-      totals
-    }
 
-    // Add comparison if there's a benchmark to compare against
-    const benchmarkTotal = totals.total * 1.15 // Simulate 15% higher benchmark
-    if (benchmarkTotal > totals.total) {
-      response.comparison = {
-        benchmark_total: benchmarkTotal,
-        savings_amount: benchmarkTotal - totals.total,
-        savings_percentage: ((benchmarkTotal - totals.total) / benchmarkTotal) * 100
-      }
-    }
 
-    return response
 
-  } catch (error) {
-    throw new Error(`Failed to generate quote: ${error instanceof Error ? error.message : 'Unknown error'}`)
-  }
-}
 
-/**
- * Validate quote request structure
- */
-export function validateQuoteRequest(request: any): request is QuoteRequest {
-  return (
-    typeof request === 'object' &&
-    typeof request.version_id === 'string' &&
-    typeof request.customer_id === 'string' &&
-    typeof request.effective_date === 'string' &&
-    typeof request.origin === 'object' &&
-    typeof request.destination === 'object' &&
-    typeof request.services === 'object'
-  )
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
