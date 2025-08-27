@@ -1,8 +1,8 @@
 import { ValidationService, ValidationResult, REQUIRED_HEADERS } from '@/lib/validationService';
-import { BenchmarkRate, ValueAddedOption, CategoryMapping, IndustrySource, RegionMapping } from '@/benchmarks';
 
-/**
- * API request payload structure for benchmark data validation
+
+exp
+  dry_run?: boolean;
  */
 export interface ValidationRequest {
   version_id: string;
@@ -10,42 +10,42 @@ export interface ValidationRequest {
   files: {
     benchmark_rates: string;
     value_added_options: string;
-    category_mappings: string;
+  valid_rows: number;
     industry_sources: string;
     region_mappings: string;
   };
-}
+ 
 
 /**
- * Per-file validation result structure
- */
+    new_records: number;
+   
 export interface PerFileResult {
   status: 'valid' | 'invalid' | 'warnings';
   rows_processed: number;
-  valid_rows: number;
-  invalid_rows: number;
-  errors: string[];
-  warnings: string[];
-}
+  status: 'valid' | '
+  per_file: {
+    value_added_opt
+    industry_sources:
+ 
 
-/**
- * Diff calculation result structure for dry run
- */
-export interface DiffResult {
-  inserts: number;
-  updates: number;
-  deletes: number;
-  details?: {
-    new_records: number;
-    updated_records: number;
-    deprecated_records: number;
-  };
 }
-
 /**
- * Complete API response structure
- */
-export interface ValidationResponse {
+ * 
+async function fetchAndParseC
+  await new Promis
+  // For demonstra
+    return [
+        id: '
+        rateType: 'per_p
+        currency: 'USD',
+        expirationDate: '2024-1
+    
+ 
+
+   
+        currency: 'USD',
+   
+        isActive: 'true'
   status: 'valid' | 'invalid' | 'warnings';
   version_id: string;
   per_file: {
@@ -54,7 +54,7 @@ export interface ValidationResponse {
     category_mappings: PerFileResult;
     industry_sources: PerFileResult;
     region_mappings: PerFileResult;
-  };
+    
   errors: string[];
   warnings: string[];
   diff?: DiffResult;
@@ -94,198 +94,198 @@ async function fetchAndParseCSV(url: string): Promise<Record<string, any>[]> {
         industryCode: 'ECOMMERCE',
         isActive: 'true'
       }
-    ];
+functi
+  d
+  
+  
+  if (data.l
+    con
+  }
+  // Validate each row
+    const rowNumber = index + 2; // A
+    // Data type validation
+    results.push(typeValidatio
+    // Business rules valid
+    results.push(businessVali
+  
+  const combined = ValidationServ
+  // Determine overall s
+  if (c
+  } el
   }
   
-  if (url.includes('value_added_options')) {
-    return [
-      {
-        id: 'VAO001',
-        serviceCode: 'PKG-001',
-        serviceName: 'Gift Wrapping',
-        description: 'Professional gift wrapping service',
-        category: 'packaging',
-        baseRate: '2.5000',
-        rateType: 'per_unit',
-        skillLevel: 'basic',
-        estimatedHours: '0.1500',
-        isActive: 'true'
-      }
-    ];
-  }
-  
-  if (url.includes('category_mappings')) {
-    return [
-      {
-        id: 'CM001',
-        categoryCode: 'PKG',
-        categoryName: 'Packaging Services',
-        description: 'All packaging related services',
-        serviceTypes: 'gift_wrap,protective_packaging,custom_packaging',
-        benchmarkMultiplier: '1.2500',
-        complexityFactor: '1.1000',
-        riskFactor: '1.0500',
-        isActive: 'true'
-      }
-    ];
-  }
-  
-  if (url.includes('industry_sources')) {
-    return [
-      {
-        id: 'IS001',
-        industryCode: 'RETAIL',
-        industryName: 'Retail Trade',
-        description: 'General retail merchandise',
-        sector: 'Commerce',
-        laborMultiplier: '1.0000',
-        equipmentMultiplier: '1.0000',
-        spaceMultiplier: '1.0000',
-        isActive: 'true'
-      },
-      {
-        id: 'IS002',
-        industryCode: 'ECOMMERCE',
-        industryName: 'E-commerce Fulfillment',
-        description: 'Online retail fulfillment',
-        sector: 'Commerce',
-        laborMultiplier: '1.2000',
-        equipmentMultiplier: '1.1500',
-        spaceMultiplier: '0.9000',
-        isActive: 'true'
-      }
-    ];
-  }
-  
-  if (url.includes('region_mappings')) {
-    return [
-      {
-        id: 'RM001',
-        regionCode: 'US-WEST',
-        regionName: 'US West Coast',
-        country: 'United States',
-        timezone: 'America/Los_Angeles',
-        laborCostIndex: '1.2500',
-        realEstateCostIndex: '1.4000',
-        averageWageRate: '18.5000',
-        isActive: 'true'
-      },
-      {
-        id: 'RM002',
-        regionCode: 'US-EAST',
-        regionName: 'US East Coast',
-        country: 'United States',
-        timezone: 'America/New_York',
-        laborCostIndex: '1.1500',
-        realEstateCostIndex: '1.3000',
-        averageWageRate: '17.2500',
-        isActive: 'true'
-      }
-    ];
-  }
-  
-  return [];
+    rows_processed: combined.rowsProcessed
+    invalid_
+    war
 }
-
 /**
- * Validates a single CSV file's data
  */
-function validateFileData(
-  data: Record<string, any>[], 
-  dataType: keyof typeof REQUIRED_HEADERS,
-  fileName: string
-): PerFileResult {
-  const results: ValidationResult[] = [];
+  benchmarkRates: Record<string, any>[],
+  categoryMappings: Record<string, any>[],
+  regionMappings: Record<string, any>[
+  // Simulate diff calculation by a
   
-  // Validate headers (simulated - in real implementation would check actual CSV headers)
-  if (data.length > 0) {
-    const actualHeaders = Object.keys(data[0]);
-    const headerValidation = ValidationService.validateHeaders(actualHeaders, dataType);
-    results.push(headerValidation);
+    benchmarkRates.lengt
+    cat
+    re
+  }
+  
+  
+    inserts:
+    del
+      new_records: i
+      deprecated_records: delet
+  };
+
+ * Benchmark Import Validat
+ * This class provides the core fu
+ * server-side API implementations.
+export class BenchmarkValidationAP
+  /**
+   * Thi
+  stati
+    if (!request.ver
+    }
+    // Validate all required file URLs are prov
+    for (const fileName of requiredFiles) {
+        throw new Error(`Mi
+    }
+    try {
+      const [
+        valueAddedOption
+       
+      
+   
+  
+      ]);
+      // Val
+      c
+      const industry
+      
+      const crossFileValidation = Va
+        industrySourcesData,
+      );
+      // Combine all errors and w
+        ...benchmarkRatesResult.errors
+        ...categoryMappingsResult.e
+        ...regionMapping
+      ];
+      c
+        ...valueAdde
+        ...industrySourcesResu
+        ...crossFileValidation.warni
+      
+      let overallStatus: 'valid' | 'i
+        overallStatus = 'invalid'
+        overallStatus = 'warnings';
+      
+      const response: Va
+       
+      
+  }
+  
+        erro
+ 
+
+   
+          valueAddedOptionsData,
+   
+        );
+      
+      
+      console.erro
+    }
+  
+  
+  static getDocumentation() {
+      endpoint: '/api/be
+      description: 'Validates benchmark data im
+        version_id: 'string (required)',
+        files: {
   }
   
   // Validate each row
-  data.forEach((row, index) => {
-    const rowNumber = index + 2; // Account for header row
+      response_structure: {
+        version_id: 'string',
     
     // Data type validation
-    const typeValidation = ValidationService.validateDataTypes(row, rowNumber, dataType);
-    results.push(typeValidation);
-    
-    // Business rules validation
-    const businessValidation = ValidationService.validateBusinessRules(row, rowNumber, dataType);
-    results.push(businessValidation);
-  });
-  
-  // Combine all validation results
-  const combined = ValidationService.combineValidationResults(results);
-  
-  // Determine overall status
-  let status: 'valid' | 'invalid' | 'warnings' = 'valid';
-  if (combined.errors.length > 0) {
-    status = 'invalid';
-  } else if (combined.warnings.length > 0) {
-    status = 'warnings';
+    };
+}
+/**
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
-  
-  return {
-    status,
-    rows_processed: combined.rowsProcessed,
-    valid_rows: combined.validRows,
-    invalid_rows: combined.invalidRows,
-    errors: combined.errors,
-    warnings: combined.warnings
-  };
+
+
+
+
+
+
+
+
+
 }
 
 /**
- * Calculates diff for dry run operations
+
  */
-function calculateDiff(
+
   benchmarkRates: Record<string, any>[],
-  valueAddedOptions: Record<string, any>[],
-  categoryMappings: Record<string, any>[],
-  industrySources: Record<string, any>[],
-  regionMappings: Record<string, any>[]
-): DiffResult {
-  // Simulate diff calculation by analyzing the data
-  // In a real implementation, this would compare against existing database records
-  
-  const totalNewRecords = 
-    benchmarkRates.length + 
-    valueAddedOptions.length + 
-    categoryMappings.length + 
-    industrySources.length + 
-    regionMappings.length;
-  
-  // Simulate some updates and deletes based on realistic scenarios
-  const updatedRecords = Math.floor(totalNewRecords * 0.1); // 10% updates
-  const deletedRecords = Math.floor(totalNewRecords * 0.05); // 5% deletes
-  const insertedRecords = totalNewRecords - updatedRecords;
-  
-  return {
-    inserts: insertedRecords,
-    updates: updatedRecords,
-    deletes: deletedRecords,
-    details: {
-      new_records: insertedRecords,
-      updated_records: updatedRecords,
-      deprecated_records: deletedRecords
-    }
-  };
-}
 
-/**
- * Benchmark Import Validation API
- * 
- * This class provides the core functionality for validating benchmark data imports
- * from CSV files. It can be used directly in React components or adapted for
+  categoryMappings: Record<string, any>[],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  };
+
+
+
+
+
+
+
  * server-side API implementations.
- */
-export class BenchmarkValidationAPI {
-  
+
+
+
   /**
-   * Validates benchmark data imports from CSV files
+
    * This is the main API endpoint implementation that orchestrates the validation process
    */
   static async validateImport(request: ValidationRequest): Promise<ValidationResponse> {
