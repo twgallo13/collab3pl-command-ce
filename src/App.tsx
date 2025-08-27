@@ -92,7 +92,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         
         <div className="p-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
-            Version: {import.meta.env.VITE_APP_VERSION || '2.1.0'}
+            Version: {import.meta.env.VITE_APP_VERSION}
           </p>
         </div>
       </aside>
@@ -691,6 +691,10 @@ export default function App() {
         <main>
           {renderContent()}
         </main>
+        
+        <footer className="text-center text-sm text-muted-foreground p-4">
+          Version: {import.meta.env.VITE_APP_VERSION}
+        </footer>
       </div>
       
       <Toaster />
