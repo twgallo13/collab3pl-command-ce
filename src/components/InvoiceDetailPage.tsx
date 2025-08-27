@@ -12,7 +12,10 @@ import {
   DollarSign,
   User,
   FileText,
-  Building
+  Building,
+  PaperPlaneTilt,
+  X,
+  CheckCircle
 } from '@phosphor-icons/react'
 import { Invoice } from '@/types/invoices'
 import { toast } from 'sonner'
@@ -28,6 +31,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
   const [editingNotes, setEditingNotes] = useState(false)
   const [vendorNotes, setVendorNotes] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     fetchInvoice()
@@ -64,6 +68,8 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
         return <Badge variant="default" className="bg-blue-100 text-blue-800 border-blue-200">Issued</Badge>
       case 'paid':
         return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">Paid</Badge>
+      case 'void':
+        return <Badge variant="destructive">Void</Badge>
       case 'overdue':
         return <Badge variant="destructive">Overdue</Badge>
       default:
@@ -84,6 +90,171 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
   const handleDownloadPDF = () => {
     // In production, this would trigger PDF generation/download
     toast.success('PDF download started')
+  }
+
+  const handleIssueInvoice = async () => {
+    try {
+      setActionLoading('issue')
+      const response = await fetch(`/api/invoices/${invoiceId}/issue`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to issue invoice')
+      }
+
+      toast.success('Invoice issued successfully')
+      // Refresh the invoice data
+      await fetchInvoice()
+      
+    } catch (error) {
+      toast.error('Failed to issue invoice', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleVoidInvoice = async () => {
+    try {
+      setActionLoading('void')
+      const response = await fetch(`/api/invoices/${invoiceId}/void`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to void invoice')
+      }
+
+      toast.success('Invoice voided successfully')
+      // Refresh the invoice data
+      await fetchInvoice()
+      
+    } catch (error) {
+      toast.error('Failed to void invoice', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleMarkAsPaid = async () => {
+    try {
+      setActionLoading('pay')
+      const response = await fetch(`/api/invoices/${invoiceId}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiptId: `RCP-${Date.now()}`, // Generate a simple receipt ID
+          paidOn: new Date().toISOString().split('T')[0], // Today's date
+          paymentMethod: 'ach'
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to mark invoice as paid')
+      }
+
+      toast.success('Invoice marked as paid successfully')
+      // Refresh the invoice data
+      await fetchInvoice()
+      
+    } catch (error) {
+      toast.error('Failed to mark invoice as paid', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const renderActionButtons = () => {
+    if (!invoice) return null
+
+    const status = invoice.meta.status.toLowerCase()
+    const buttons = []
+
+    switch (status) {
+      case 'draft':
+        buttons.push(
+          <Button 
+            key="issue"
+            onClick={handleIssueInvoice}
+            disabled={actionLoading !== null}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {actionLoading === 'issue' ? (
+              'Issuing...'
+            ) : (
+              <>
+                <PaperPlaneTilt size={16} className="mr-2" />
+                Issue Invoice
+              </>
+            )}
+          </Button>
+        )
+        break
+
+      case 'issued':
+        buttons.push(
+          <Button 
+            key="pay"
+            onClick={handleMarkAsPaid}
+            disabled={actionLoading !== null}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            {actionLoading === 'pay' ? (
+              'Processing...'
+            ) : (
+              <>
+                <CheckCircle size={16} className="mr-2" />
+                Mark as Paid
+              </>
+            )}
+          </Button>
+        )
+        buttons.push(
+          <Button 
+            key="void"
+            variant="destructive"
+            onClick={handleVoidInvoice}
+            disabled={actionLoading !== null}
+          >
+            {actionLoading === 'void' ? (
+              'Voiding...'
+            ) : (
+              <>
+                <X size={16} className="mr-2" />
+                Void Invoice
+              </>
+            )}
+          </Button>
+        )
+        break
+
+      case 'paid':
+      case 'void':
+        // No action buttons for paid or void invoices
+        break
+    }
+
+    return buttons
   }
 
   const formatCurrency = (amount: number) => {
@@ -147,6 +318,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
         </div>
         <div className="flex items-center gap-3">
           {getStatusBadge(invoice.meta.status)}
+          {renderActionButtons()}
           <Button variant="outline" onClick={handleDownloadPDF}>
             <Download size={16} className="mr-2" />
             Download PDF
@@ -237,7 +409,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
                           <div>
                             <p className="font-medium">{item.description}</p>
                             <p className="text-xs text-muted-foreground">
-                              {item.uom} • Period: {item.period}
+                              {item.unit} • {item.serviceCode}
                             </p>
                           </div>
                         </td>
@@ -245,10 +417,10 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
                           {item.quantity.toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-right">
-                          {formatCurrency(item.rate)}
+                          {formatCurrency(item.unitRate)}
                         </td>
                         <td className="py-3 px-3 text-right font-medium">
-                          {formatCurrency(item.amount)}
+                          {formatCurrency(item.extendedCost)}
                         </td>
                       </tr>
                     ))}

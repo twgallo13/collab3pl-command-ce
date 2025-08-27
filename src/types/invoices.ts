@@ -6,7 +6,7 @@
 export interface Invoice {
   meta: {
     invoiceId: string
-    status: 'draft' | 'pending' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+    status: 'draft' | 'issued' | 'paid' | 'void' | 'overdue'
     currency: string
     createdOn: string // ISO timestamp
     lastModifiedOn: string // ISO timestamp

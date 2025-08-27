@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Invoice } from '@/types/invoices'
 
 /**
- * Changes invoice status from 'draft' to 'issued'
- * Sets the issuedOn date if not already set
+ * Changes invoice status to 'void'
+ * Only allowed if current status is 'draft' or 'issued'
  */
 export async function POST(
   request: NextRequest,
@@ -14,22 +14,21 @@ export async function POST(
 
     // In production, this would:
     // 1. Fetch the invoice from Firestore
-    // 2. Validate the current status is 'draft'
-    // 3. Update the status to 'issued'
-    // 4. Set issuedOn date if not already set
-    // 5. Create audit log entry
-    // 6. Trigger any business processes (email notifications, etc.)
+    // 2. Validate the current status allows voiding
+    // 3. Update the status to 'void'
+    // 4. Create audit log entry
+    // 5. Trigger any business processes (notifications, etc.)
 
-    // Mock validation - check if current status allows issuing
-    const allowedStatuses = ['draft']
+    // Mock validation - check if current status allows voiding
+    const allowedStatuses = ['draft', 'issued']
     // In production, you'd fetch the current status from the database
-    const currentStatus = 'draft' // Mock current status
+    const currentStatus = 'issued' // Mock current status
 
     if (!allowedStatuses.includes(currentStatus)) {
       return NextResponse.json(
         { 
           success: false, 
-          message: `Cannot issue invoice with status '${currentStatus}'. Only draft invoices can be issued.` 
+          message: `Cannot void invoice with status '${currentStatus}'. Only draft or issued invoices can be voided.` 
         },
         { status: 400 }
       )
@@ -38,15 +37,12 @@ export async function POST(
     // Mock response - in production this would be the updated invoice
     const response = {
       success: true,
-      message: 'Invoice issued successfully',
+      message: 'Invoice voided successfully',
       invoice: {
         meta: {
           invoiceId,
-          status: 'issued',
+          status: 'void',
           lastModifiedOn: new Date().toISOString(),
-        },
-        dateRange: {
-          issuedOn: new Date().toISOString().split('T')[0], // Set today as issued date
         }
       }
     }
@@ -54,11 +50,11 @@ export async function POST(
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Error issuing invoice:', error)
+    console.error('Error voiding invoice:', error)
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Failed to issue invoice' 
+        message: 'Failed to void invoice' 
       },
       { status: 500 }
     )
