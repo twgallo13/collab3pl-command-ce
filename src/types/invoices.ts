@@ -1,13 +1,13 @@
 /**
  * Invoice data contracts for the Collab3PL billing system
+ * Based on section B.2.1 of the collab3pl V9.5 Final document
+ */
 
-  m
-
-    createdOn: string // I
-    versi
-
-    accountId: string
-    billingContact: 
+export interface Invoice {
+  meta: {
+    invoiceId: string
+    status: 'draft' | 'pending' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+    currency: string
     createdOn: string // ISO timestamp
     lastModifiedOn: string // ISO timestamp
     version: number
@@ -18,211 +18,117 @@
     name: string
     billingContact: {
       name: string
-    terms: string
-
-    q
-    contractId?: stri
+      email: string
+      phone?: string
+    }
+    billingAddress: {
+      line1: string
+      line2?: string
+      city: string
+      state: string
+      zipCode: string
+      country: string
+    }
   }
-  lineItems: Invoice
-  discounts: Invoi
-  tax: {
-    rate: number
-    amount?: number
-  }
-  rounding: {
-    precision: num
 
-
-    subtotalAf
-    totalBeforeRounding: number
-    grandTotal: number
-    amountPaid: number
-
-    terms: string
+  dateRange: {
+    periodStart: string // ISO date
+    periodEnd: string // ISO date
+    issuedOn: string // ISO date
+    dueOn: string // ISO date
+    terms: number // days
   }
 
   references: {
     quoteId?: string
     rateCardVersionId: string
-    contractId?: string
-    previousInvoiceId?: string
+    poNumber?: string
   }
 
-  lineItems: InvoiceLineItem[]
+  lineItems: LineItem[]
 
-  discounts: InvoiceDiscount[]
+  discounts: Discount[]
 
   tax: {
     enabled: boolean
-    rate: number
-    basis: 'subtotal' | 'total_before_tax'
+    rate: number // percentage
+    basis: 'subtotal' | 'discounted_subtotal'
     amount?: number
-    description?: string
   }
 
   rounding: {
-    mode: 'round' | 'floor' | 'ceil'
-    precision: number
+    mode: 'standard' | 'up' | 'down'
+    precision: number // decimal places
   }
 
   totals: {
     subtotal: number
     discountAmount: number
-    subtotalAfterDiscounts: number
+    discountedSubtotal: number
     taxAmount: number
-    totalBeforeRounding: number
-    roundingAdjustment: number
     grandTotal: number
-    amountDue: number
-    amountPaid: number
   }
 
   notes: {
     internal?: string
     vendorVisible?: string
-    history: InvoiceNote[]
+    history: string[]
   }
 
   audit: {
-    events: InvoiceAuditEvent[]
-    inputsSnapshot: {
-      quoteData?: any
-      rateCardData?: any
-    lineIds?: string[]
-      taxSettings?: any
-  ord
-  a
+    events: AuditEvent[]
+    inputsSnapshot: Record<string, any>
+  }
 
   exports: {
     pdfGeneratedOn?: string // ISO timestamp
     csvGeneratedOn?: string // ISO timestamp
-    xmlGeneratedOn?: string // ISO timestamp
-    lastExportedOn?: string // ISO timestamp
+    lastEmailedOn?: string // ISO timestamp
   }
 }
 
-export interface InvoiceLineItem {
-      oldValue: 
-  category: 'receiving' | 'fulfillment' | 'storage' | 'vas' | 'surcharges' | 'freight'
+export interface LineItem {
+  id: string
+  category: 'receiving' | 'fulfillment' | 'storage' | 'vas' | 'surcharges'
   serviceCode: string
   description: string
   quantity: number
-  unitOfMeasure: string
-}
+  unit: string
+  unitRate: number
   extendedCost: number
   discountable: boolean
-  period: {
-  periodEnd: string
-    end: string // ISO date
-  i
-  references: {
-  discounts?: Partial<In
-    rateCardItemId?: string
-    sourceDocument?: string
-  u
-  metadata?: {
-    [key: string]: any
-  }
+  metadata?: Record<string, any>
 }
 
-export interface InvoiceDiscount {
-  issuedAfter?: stri
+export interface Discount {
+  id: string
   type: 'flat' | 'percentage'
   amount: number
   description: string
-  applyTo: {
-    scope: 'all' | 'category' | 'specific_lines'
-    categories?: string[]
-    lineIds?: string[]
-  h
+  applyTo: 'all' | 'receiving' | 'fulfillment' | 'storage' | 'vas'
   appliedAmount: number
-
 }
 
-export interface InvoiceNote {
+export interface AuditEvent {
   timestamp: string // ISO timestamp
-  author: string
-  reference?: str
-  type: 'system' | 'user' | 'client'
-  visibility: 'internal' | 'client' | 'all'
-}
-
-export interface InvoiceAuditEvent {
-  timestamp: string // ISO timestamp
+  event: 'created' | 'modified' | 'sent' | 'paid' | 'cancelled'
   userId: string
-  action: 'created' | 'updated' | 'sent' | 'paid' | 'cancelled' | 'exported' | 'viewed'
-  details: {
-    changes?: {
-      field: string
-      oldValue: any
-      newValue: any
-
-    metadata?: {
-      [key: string]: any
-    }
-
-  ipAddress?: string
-
+  details: string
+  metadata?: Record<string, any>
 }
 
-// Supporting types for invoice creation and updates
-export interface CreateInvoiceRequest {
-  clientId: string
-  periodStart: string
-  periodEnd: string
-
-  rateCardVersionId: string
-  includeVas?: boolean
-  includeSurcharges?: boolean
-  customLineItems?: Partial<InvoiceLineItem>[]
-  discounts?: Partial<InvoiceDiscount>[]
-
-}
-
-export interface UpdateInvoiceRequest {
-
-  updates: Partial<Pick<Invoice, 'lineItems' | 'discounts' | 'notes' | 'dateRange'>>
-  reason?: string
-}
-
-export interface InvoiceFilters {
-  clientId?: string
-  status?: Invoice['meta']['status']
-  periodStart?: string
-  periodEnd?: string
-
-  issuedBefore?: string
-
-  dueBefore?: string
-
-  amountMax?: number
-
-
-
-export interface InvoiceListResponse {
-  invoices: Invoice[]
-  totalCount: number
-  hasMore: boolean
-  nextCursor?: string
-}
-
-// Payment tracking types
-export interface InvoicePayment {
-
-  invoiceId: string
-
-  currency: string
-  method: 'check' | 'ach' | 'wire' | 'credit_card' | 'other'
+export interface PaymentRecord {
+  paymentId: string
+  amount: number
+  method: 'ach' | 'wire' | 'check' | 'credit_card'
   receivedOn: string // ISO timestamp
   reference?: string
-  notes?: string
-
   status: 'pending' | 'cleared' | 'failed' | 'reversed'
-
+}
 
 export interface PaymentAllocation {
   paymentId: string
-
   allocatedAmount: number
   allocatedOn: string // ISO timestamp
   allocatedBy: string
+}
