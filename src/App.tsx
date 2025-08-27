@@ -38,7 +38,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
         />
       )}
       <aside className={cn(
-        "fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border transition-transform duration-300 lg:translate-x-0",
+        "fixed top-0 left-0 z-50 h-full w-64 bg-card border-r border-border transition-transform duration-300 lg:translate-x-0 flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -53,7 +53,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
           </Button>
         </div>
         
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon
             return (
@@ -72,6 +72,12 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
             )
           })}
         </nav>
+        
+        <div className="p-4 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
+            Version: {import.meta.env.VITE_APP_VERSION || '1.2.0'}
+          </p>
+        </div>
       </aside>
     </>
   )
