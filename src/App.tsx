@@ -19,6 +19,7 @@ import {
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
+import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
 import { toast } from 'sonner'
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
     { id: 'wms', label: 'WMS', icon: Package },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'clients', label: 'Clients', icon: Users },
+    { id: 'import', label: 'Import Benchmarks', icon: Upload },
     { id: 'settings', label: 'Settings', icon: Gear },
   ]
 
@@ -402,6 +404,17 @@ function DashboardContent() {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeItem] = useKV('sidebar-active', 'dashboard')
+
+  const renderContent = () => {
+    switch (activeItem) {
+      case 'import':
+        return <BenchmarkImportPage />
+      case 'dashboard':
+      default:
+        return <DashboardContent />
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -411,7 +424,7 @@ export default function App() {
         <Header onMenuClick={() => setSidebarOpen(true)} />
         
         <main>
-          <DashboardContent />
+          {renderContent()}
         </main>
       </div>
       
