@@ -16,6 +16,15 @@ export interface Invoice {
   client: {
     accountId: string
     name: string
+    email: string
+    address: {
+      line1: string
+      line2?: string
+      city: string
+      state: string
+      zip: string
+      country: string
+    }
     billingContact: {
       name: string
       email: string
@@ -41,6 +50,7 @@ export interface Invoice {
 
   references: {
     quoteId?: string
+    contractId?: string
     rateCardVersionId: string
     poNumber?: string
   }
@@ -63,10 +73,17 @@ export interface Invoice {
 
   totals: {
     subtotal: number
+    discountableSubtotal: number
+    nonDiscountableSubtotal: number
+    beforeDiscounts: number
     discountAmount: number
+    totalDiscounts: number
     discountedSubtotal: number
+    afterDiscounts: number
     taxAmount: number
+    taxes: number
     grandTotal: number
+    discountsApplied?: DiscountApplied[]
   }
 
   notes: {
@@ -107,6 +124,11 @@ export interface Discount {
   description: string
   applyTo: 'all' | 'receiving' | 'fulfillment' | 'storage' | 'vas'
   appliedAmount: number
+}
+
+export interface DiscountApplied {
+  description: string
+  appliedToAmount: number
 }
 
 export interface AuditEvent {

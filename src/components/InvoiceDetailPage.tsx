@@ -4,6 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { 
   ArrowLeft, 
   Download, 
@@ -15,7 +21,9 @@ import {
   Building,
   PaperPlaneTilt,
   X,
-  CheckCircle
+  CheckCircle,
+  CaretDown,
+  FilePdf
 } from '@phosphor-icons/react'
 import { Invoice } from '@/types/invoices'
 import { toast } from 'sonner'
@@ -32,6 +40,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
   const [vendorNotes, setVendorNotes] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [exportLoading, setExportLoading] = useState(false)
 
   useEffect(() => {
     fetchInvoice()
@@ -87,9 +96,58 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
     }
   }
 
-  const handleDownloadPDF = () => {
-    // In production, this would trigger PDF generation/download
-    toast.success('PDF download started')
+  const handleDownloadPDF = async () => {
+    try {
+      setExportLoading(true)
+      
+      const response = await fetch(`/api/invoices/${invoiceId}/export/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to generate PDF')
+      }
+
+      // Convert base64 data URI to blob and trigger download
+      const base64Data = result.pdfData.split(',')[1] // Remove data:application/pdf;base64, prefix
+      const byteCharacters = atob(base64Data)
+      const byteNumbers = new Array(byteCharacters.length)
+      
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = result.filename
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast.success('PDF downloaded successfully', {
+        description: `File: ${result.filename}`
+      })
+      
+    } catch (error) {
+      toast.error('Failed to export PDF', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setExportLoading(false)
+    }
   }
 
   const handleIssueInvoice = async () => {
@@ -319,10 +377,21 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
         <div className="flex items-center gap-3">
           {getStatusBadge(invoice.meta.status)}
           {renderActionButtons()}
-          <Button variant="outline" onClick={handleDownloadPDF}>
-            <Download size={16} className="mr-2" />
-            Download PDF
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={exportLoading}>
+                <Download size={16} className="mr-2" />
+                {exportLoading ? 'Exporting...' : 'Export'}
+                <CaretDown size={16} className="ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleDownloadPDF} disabled={exportLoading}>
+                <FilePdf size={16} className="mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
