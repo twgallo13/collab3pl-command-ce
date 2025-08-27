@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { 
   Upload, 
   CheckCircle, 
@@ -17,11 +18,13 @@ import {
   Check,
   X,
   Database,
-  Clock
+  Clock,
+  ArrowCounterClockwise
 } from '@phosphor-icons/react'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { validateImports } from '@/api/benchmarks/imports/validate'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
+import { rollbackImports, getImportHistory, RollbackRequest, RollbackResponse, ImportHistoryRecord } from '@/api/benchmarks/imports/rollback'
 import { toast } from 'sonner'
 
 interface FileUploadState {
@@ -115,6 +118,14 @@ export function BenchmarkImportPage() {
   const [isCommitting, setIsCommitting] = useState(false)
   const [canImport, setCanImport] = useState(false)
   const [commitMode, setCommitMode] = useState<'replace' | 'upsert'>('replace')
+  
+  // Rollback state
+  const [isRollbackDialogOpen, setIsRollbackDialogOpen] = useState(false)
+  const [importHistory, setImportHistory] = useState<ImportHistoryRecord[]>([])
+  const [selectedImportId, setSelectedImportId] = useState<string>('')
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [isRollingBack, setIsRollingBack] = useState(false)
+  const [rollbackResults, setRollbackResults] = useState<RollbackResponse | null>(null)
 
   const fileConfigs = [
     { key: 'benchmark_rates', label: 'Benchmark Rates', fileName: 'benchmark_rates.csv' },
@@ -238,6 +249,76 @@ export function BenchmarkImportPage() {
     }
   }
 
+  // Rollback handlers
+  const handleOpenRollbackDialog = async () => {
+    setIsLoadingHistory(true)
+    setIsRollbackDialogOpen(true)
+    
+    try {
+      const history = await getImportHistory()
+      setImportHistory(history)
+    } catch (error) {
+      toast.error('Failed to load import history', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  const handleRollback = async () => {
+    if (!selectedImportId) {
+      toast.error('Please select an import to rollback to')
+      return
+    }
+
+    setIsRollingBack(true)
+
+    try {
+      const rollbackRequest: RollbackRequest = {
+        import_id: selectedImportId
+      }
+
+      toast.loading('Rolling back to selected import...', { id: 'rollback-toast' })
+      
+      const result = await rollbackImports(rollbackRequest)
+      setRollbackResults(result)
+
+      toast.success('Rollback completed successfully', {
+        id: 'rollback-toast',
+        description: result.message
+      })
+
+      // Close dialog and reset selection
+      setIsRollbackDialogOpen(false)
+      setSelectedImportId('')
+      
+      // Reset form state after rollback
+      setCanImport(false)
+      setValidationResults(null)
+      setCommitResults(null)
+
+    } catch (error) {
+      toast.error('Rollback failed', {
+        id: 'rollback-toast',
+        description: error instanceof Error ? error.message : 'Unknown error occurred during rollback'
+      })
+    } finally {
+      setIsRollingBack(false)
+    }
+  }
+
+  const formatDateTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString()
+  }
+
+  const getImportStatusBadge = (record: ImportHistoryRecord) => {
+    if (record.is_active) {
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>
+    }
+    return <Badge variant="outline">Inactive</Badge>
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'valid':
@@ -335,22 +416,140 @@ export function BenchmarkImportPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4 border-t border-border">
-              <Button
-                onClick={handleValidateFiles}
-                disabled={!isValidationPossible() || isValidating || isCommitting}
-                className="flex-1"
-              >
-                {isValidating ? 'Validating...' : 'Validate Files'}
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleImportCommit}
-                disabled={!canImport || isValidating || isCommitting}
-                className="flex-1"
-              >
-                {isCommitting ? 'Committing...' : `Import (${commitMode})`}
-              </Button>
+            <div className="space-y-3 pt-4 border-t border-border">
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleValidateFiles}
+                  disabled={!isValidationPossible() || isValidating || isCommitting}
+                  className="flex-1"
+                >
+                  {isValidating ? 'Validating...' : 'Validate Files'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleImportCommit}
+                  disabled={!canImport || isValidating || isCommitting}
+                  className="flex-1"
+                >
+                  {isCommitting ? 'Committing...' : `Import (${commitMode})`}
+                </Button>
+              </div>
+              
+              <Dialog open={isRollbackDialogOpen} onOpenChange={setIsRollbackDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenRollbackDialog}
+                    disabled={isValidating || isCommitting || isRollingBack}
+                    className="w-full"
+                  >
+                    <ArrowCounterClockwise className="h-4 w-4 mr-2" />
+                    Rollback to Previous Import
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle>Rollback to Previous Import</DialogTitle>
+                    <DialogDescription>
+                      Select a previous import to rollback to. This will make the selected version active and replace the current benchmark data.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="flex-1 overflow-auto">
+                    {isLoadingHistory ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Clock className="h-8 w-8 animate-spin text-muted-foreground" />
+                        <span className="ml-2 text-muted-foreground">Loading import history...</span>
+                      </div>
+                    ) : importHistory.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No previous imports found</p>
+                      </div>
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">Select</TableHead>
+                            <TableHead>Import ID</TableHead>
+                            <TableHead>Version</TableHead>
+                            <TableHead>Mode</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Records</TableHead>
+                            <TableHead>Warnings</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {importHistory.map((record) => (
+                            <TableRow 
+                              key={record.import_id}
+                              className={selectedImportId === record.import_id ? 'bg-muted' : ''}
+                            >
+                              <TableCell>
+                                <input
+                                  type="radio"
+                                  name="import_selection"
+                                  value={record.import_id}
+                                  checked={selectedImportId === record.import_id}
+                                  onChange={(e) => setSelectedImportId(e.target.value)}
+                                  disabled={record.is_active}
+                                  className="h-4 w-4"
+                                />
+                              </TableCell>
+                              <TableCell className="font-mono text-xs">
+                                {record.import_id.substring(0, 20)}...
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{record.version_id}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={record.mode === 'replace' ? 'default' : 'secondary'}>
+                                  {record.mode}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {getImportStatusBadge(record)}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {formatDateTime(record.timestamp)}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {record.total_records_processed.toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                {record.warnings.length > 0 ? (
+                                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                    {record.warnings.length}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">None</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsRollbackDialogOpen(false)}
+                      disabled={isRollingBack}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleRollback}
+                      disabled={!selectedImportId || isRollingBack}
+                    >
+                      {isRollingBack ? 'Rolling Back...' : 'Confirm Rollback'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Upload Status */}
@@ -614,6 +813,49 @@ export function BenchmarkImportPage() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>Completed at {new Date(commitResults.timestamp).toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Rollback Results */}
+      {rollbackResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ArrowCounterClockwise className="h-5 w-5" />
+              Rollback Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="font-medium">Rollback completed successfully</span>
+              <Badge className="bg-green-100 text-green-800 border-green-200">Success</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Rollback ID:</span>
+                <div className="text-muted-foreground font-mono">{rollbackResults.rollback_id}</div>
+              </div>
+              <div>
+                <span className="font-medium">Rolled back to Import:</span>
+                <div className="text-muted-foreground font-mono">{rollbackResults.rolled_back_to_import_id}</div>
+              </div>
+              <div>
+                <span className="font-medium">Active Version:</span>
+                <div className="text-muted-foreground">{rollbackResults.version_id}</div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700">{rollbackResults.message}</p>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Completed at {new Date(rollbackResults.timestamp).toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
