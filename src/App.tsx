@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { BenchmarkValidationAPI, ValidationRequest, ValidationResponse } from '@/lib/benchmarkValidationAPI'
 import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
 import { QuoteGeneratorPage } from '@/components/QuoteGeneratorPage'
+import { InvoiceManagementPage } from '@/components/InvoiceManagementPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -672,6 +673,8 @@ export default function App() {
         return <BenchmarkImportPage />
       case 'quote-generator':
         return <QuoteGeneratorPage />
+      case 'billing':
+        return <InvoiceManagementPage />
       case 'dashboard':
       default:
         return <DashboardContent />
