@@ -32,11 +32,11 @@ import { toast } from 'sonner'
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
+  activeItem: string
+  onItemClick: (itemId: string) => void
 }
 
-function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const [activeItem, setActiveItem] = useKV('sidebar-active', 'dashboard')
-
+function Sidebar({ isOpen, onClose, activeItem, onItemClick }: SidebarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: House },
     { id: 'wms', label: 'WMS', icon: Package },
@@ -80,7 +80,7 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
                 variant={activeItem === item.id ? "default" : "ghost"}
                 className="w-full justify-start gap-3"
                 onClick={() => {
-                  setActiveItem(item.id)
+                  onItemClick(item.id)
                   onClose()
                 }}
               >
@@ -666,7 +666,7 @@ function DashboardContent() {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeItem] = useKV('sidebar-active', 'dashboard')
+  const [activeItem, setActiveItem] = useKV('sidebar-active', 'dashboard')
   const [selectedInvoice, setSelectedInvoice] = useKV<string | null>('selected-invoice', null)
 
   const renderContent = () => {
@@ -697,7 +697,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+        activeItem={activeItem}
+        onItemClick={setActiveItem}
+      />
       
       <div className="lg:pl-64">
         <Header onMenuClick={() => setSidebarOpen(true)} />
