@@ -1,5 +1,3 @@
-import { useKV } from '@github/spark/hooks'
-
 /**
  * Request payload for rolling back to a previous benchmark import
  * Based on section A.5.3 of the collab3pl V9.5 Final document

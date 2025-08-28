@@ -1,5 +1,3 @@
-import { useKV } from '@github/spark/hooks'
-
 /**
  * Request payload for committing benchmark data
  * Based on section A.5.2 of the collab3pl V9.5 Final document

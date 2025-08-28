@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -109,7 +108,7 @@ function Sidebar({ isOpen, onClose, activeItem, onItemClick }: SidebarProps) {
 }
 
 function Header({ onMenuClick }: { onMenuClick: () => void }) {
-  const [user] = useKV('current-user', { name: 'Admin User', email: 'admin@collab3pl.com' })
+  const [user] = useState({ name: 'Admin User', email: 'admin@collab3pl.com' })
 
   return (
     <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
@@ -134,9 +133,9 @@ function Header({ onMenuClick }: { onMenuClick: () => void }) {
 }
 
 function DashboardContent() {
-  const [validationResults, setValidationResults] = useKV<ValidationResponse | null>('validation-results', null)
-  const [commitResults, setCommitResults] = useKV<CommitResponse | null>('commit-results', null)
-  const [quoteResults, setQuoteResults] = useKV<QuoteResponse | null>('quote-results', null)
+  const [validationResults, setValidationResults] = useState<ValidationResponse | null>(null)
+  const [commitResults, setCommitResults] = useState<CommitResponse | null>(null)
+  const [quoteResults, setQuoteResults] = useState<QuoteResponse | null>(null)
   const [isValidating, setIsValidating] = useState(false)
   const [isCommitting, setIsCommitting] = useState(false)
   const [isGeneratingQuote, setIsGeneratingQuote] = useState(false)
@@ -673,8 +672,8 @@ function DashboardContent() {
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeItem, setActiveItem] = useKV('sidebar-active', 'dashboard')
-  const [selectedInvoice, setSelectedInvoice] = useKV<string | null>('selected-invoice', null)
+  const [activeItem, setActiveItem] = useState('dashboard')
+  const [selectedInvoice, setSelectedInvoice] = useState<string | null>(null)
 
   const renderContent = () => {
     switch (activeItem) {

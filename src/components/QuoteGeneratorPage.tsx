@@ -4,7 +4,6 @@
  */
 
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -38,33 +37,33 @@ interface DiscountItem {
 
 export function QuoteGeneratorPage() {
   // Form state
-  const [versionId, setVersionId] = useKV('quote-version-id', 'v2024.1')
-  const [customerId, setCustomerId] = useKV('quote-customer-id', '')
-  const [effectiveDate, setEffectiveDate] = useKV('quote-effective-date', new Date().toISOString().split('T')[0])
+  const [versionId, setVersionId] = useState('v2024.1')
+  const [customerId, setCustomerId] = useState('')
+  const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0])
   
   // Origin/Destination
-  const [originCountry, setOriginCountry] = useKV('quote-origin-country', 'US')
-  const [originState, setOriginState] = useKV('quote-origin-state', '')
-  const [originZip3, setOriginZip3] = useKV('quote-origin-zip3', '')
-  const [destCountry, setDestCountry] = useKV('quote-dest-country', 'US')
-  const [destState, setDestState] = useKV('quote-dest-state', '')
-  const [destZip3, setDestZip3] = useKV('quote-dest-zip3', '')
+  const [originCountry, setOriginCountry] = useState('US')
+  const [originState, setOriginState] = useState('')
+  const [originZip3, setOriginZip3] = useState('')
+  const [destCountry, setDestCountry] = useState('US')
+  const [destState, setDestState] = useState('')
+  const [destZip3, setDestZip3] = useState('')
   
   // Services
-  const [receivingPallets, setReceivingPallets] = useKV('quote-receiving-pallets', 0)
-  const [receivingCartons, setReceivingCartons] = useKV('quote-receiving-cartons', 0)
-  const [receivingPieces, setReceivingPieces] = useKV('quote-receiving-pieces', 0)
+  const [receivingPallets, setReceivingPallets] = useState(0)
+  const [receivingCartons, setReceivingCartons] = useState(0)
+  const [receivingPieces, setReceivingPieces] = useState(0)
   
-  const [fulfillmentOrders, setFulfillmentOrders] = useKV('quote-fulfillment-orders', 0)
-  const [fulfillmentLines, setFulfillmentLines] = useKV('quote-fulfillment-lines', 0)
-  const [fulfillmentPieces, setFulfillmentPieces] = useKV('quote-fulfillment-pieces', 0)
+  const [fulfillmentOrders, setFulfillmentOrders] = useState(0)
+  const [fulfillmentLines, setFulfillmentLines] = useState(0)
+  const [fulfillmentPieces, setFulfillmentPieces] = useState(0)
   
-  const [storagePallets, setStoragePallets] = useKV('quote-storage-pallets', 0)
-  const [storageSqFt, setStorageSqFt] = useKV('quote-storage-sqft', 0)
+  const [storagePallets, setStoragePallets] = useState(0)
+  const [storageSqFt, setStorageSqFt] = useState(0)
   
   // VAS and Discounts
-  const [vasItems, setVasItems] = useKV<VasItem[]>('quote-vas-items', [])
-  const [discountItems, setDiscountItems] = useKV<DiscountItem[]>('quote-discount-items', [])
+  const [vasItems, setVasItems] = useState<VasItem[]>([])
+  const [discountItems, setDiscountItems] = useState<DiscountItem[]>([])
   
   // Results and state
   const [quoteResult, setQuoteResult] = useState<QuoteResponse | null>(null)
