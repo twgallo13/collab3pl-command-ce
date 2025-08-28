@@ -44,11 +44,16 @@ export interface OrderItem {
 export interface Order {
   orderId: string
   clientId: string
-  status: 'received' | 'waved' | 'picking' | 'picked' | 'shipped' | 'cancelled'
+  status: 'open' | 'ready_to_pick' | 'picking' | 'picked' | 'shipped' | 'cancelled' | 'exception'
   items: OrderItem[]
   waveId?: string
-  exceptions: string[]
+  exceptions: Array<{
+    type: string
+    message: string
+    createdAt: string
+  }>
   priority: 'low' | 'normal' | 'high' | 'urgent'
+  dueDate: string
   createdAt: string
   updatedAt: string
   shipBy?: string
