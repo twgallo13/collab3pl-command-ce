@@ -41,17 +41,24 @@ export interface OrderItem {
   status: 'pending' | 'picking' | 'picked' | 'exception'
 }
 
+export interface OrderException {
+  exceptionId: string
+  type: string
+  sku: string
+  code: string
+  message: string
+  actor: string
+  createdAt: string
+  details?: string
+}
+
 export interface Order {
   orderId: string
   clientId: string
   status: 'open' | 'ready_to_pick' | 'picking' | 'picked' | 'shipped' | 'cancelled' | 'exception'
   items: OrderItem[]
   waveId?: string
-  exceptions: Array<{
-    type: string
-    message: string
-    createdAt: string
-  }>
+  exceptions: OrderException[]
   priority: 'low' | 'normal' | 'high' | 'urgent'
   dueDate: string
   createdAt: string
@@ -84,6 +91,19 @@ export interface ReceivingScanResponse {
   labelId: string
   binId: string
   status: 'success'
+  message: string
+}
+
+// Exception handling types
+export interface ExceptionRequest {
+  sku: string
+  code?: string
+  details?: string
+}
+
+export interface ExceptionResponse {
+  success: boolean
+  exceptionId: string
   message: string
 }
 

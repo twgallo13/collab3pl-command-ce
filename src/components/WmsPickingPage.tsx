@@ -130,22 +130,53 @@ export function WmsPickingPage({}: WmsPickingPageProps) {
     }
   }
 
-  const handleMarkNotFound = (item: PicklistItem) => {
-    // For now, just log to console as per requirements
-    console.log(`Item not found: ${item.sku} (${item.invId}) in bin ${item.binId}`)
-    toast.warning(`Item ${item.sku} marked as not found - logged for review`)
-    
-    // Update local state to show as not found
-    if (picklist) {
-      const updatedItems = picklist.items.map(pickItem =>
-        pickItem.invId === item.invId 
-          ? { ...pickItem, status: 'not_found' as const }
-          : pickItem
-      )
+  const handleMarkNotFound = async (item: PicklistItem) => {
+    if (!selectedWave) return
+
+    try {
+      setPickingItems(prev => new Set(prev).add(item.invId))
       
-      setPicklist({
-        ...picklist,
-        items: updatedItems
+      const response = await fetch(`/app/api/wms/orders/${item.orderId}/exceptions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          sku: item.sku,
+          code: 'NOT_FOUND',
+          details: `Item not found in bin ${item.binId} during picking`
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        toast.success(`Exception logged for ${item.sku} - flagged for manager review`)
+        
+        // Update local state to show as not found
+        if (picklist) {
+          const updatedItems = picklist.items.map(pickItem =>
+            pickItem.invId === item.invId 
+              ? { ...pickItem, status: 'not_found' as const }
+              : pickItem
+          )
+          
+          setPicklist({
+            ...picklist,
+            items: updatedItems
+          })
+        }
+      } else {
+        toast.error('Failed to log exception')
+      }
+    } catch (error) {
+      console.error('Error logging exception:', error)
+      toast.error('Error logging exception')
+    } finally {
+      setPickingItems(prev => {
+        const updated = new Set(prev)
+        updated.delete(item.invId)
+        return updated
       })
     }
   }
@@ -155,7 +186,7 @@ export function WmsPickingPage({}: WmsPickingPageProps) {
       case 'picked':
         return <Badge className="bg-green-100 text-green-800">Picked</Badge>
       case 'not_found':
-        return <Badge variant="destructive">Not Found</Badge>
+        return <Badge variant="destructive">Missing - Flagged</Badge>
       case 'pending':
       default:
         return <Badge variant="outline">Pending</Badge>
@@ -255,11 +286,33 @@ export function WmsPickingPage({}: WmsPickingPageProps) {
                               size="sm"
                               variant="outline"
                               onClick={() => handleMarkNotFound(item)}
+                              disabled={pickingItems.has(item.invId)}
                             >
-                              <AlertTriangle size={16} className="mr-1" />
-                              Not Found
+                              {pickingItems.has(item.invId) ? (
+                                <>
+                                  <Clock size={16} className="mr-1" />
+                                  Logging...
+                                </>
+                              ) : (
+                                <>
+                                  <AlertTriangle size={16} className="mr-1" />
+                                  Not Found
+                                </>
+                              )}
                             </Button>
                           </>
+                        )}
+                        {item.status === 'not_found' && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <AlertTriangle size={14} />
+                            Flagged as Missing
+                          </Badge>
+                        )}
+                        {item.status === 'picked' && (
+                          <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                            <CheckCircle size={14} />
+                            Picked
+                          </Badge>
                         )}
                       </div>
                     </TableCell>
