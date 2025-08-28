@@ -2,46 +2,55 @@
 
 ## Core Purpose & Success
 
-**Mission Statement**: Provide a comprehensive admin command center for managing benchmark pricing data imports, generating logistics quotes, and monitoring system operations.
+**Mission Statement**: Provide a comprehensive admin command center for managing benchmark pricing data imports, generating logistics quotes, monitoring warehouse operations, processing invoices, and handling returns/RMA operations.
 
 **Success Indicators**: 
 - Admins can successfully import and validate benchmark pricing data
 - Quote generation API provides accurate pricing calculations
+- Warehouse operations are efficiently tracked and managed
+- Invoice lifecycle is completely managed from draft to payment
+- Returns and RMA processes are streamlined with full audit trails
 - System operations are clearly visible through the dashboard
 - All administrative tasks can be completed efficiently
 
-**Experience Qualities**: Professional, reliable, transparent, efficient
+**Experience Qualities**: Professional, reliable, transparent, efficient, comprehensive
 
 ## Project Classification & Approach
 
-**Complexity Level**: Light Application (multiple features with basic state management)
+**Complexity Level**: Complex Application (advanced functionality with comprehensive business logic)
 
-**Primary User Activity**: Acting and Creating - users perform administrative tasks and generate business-critical quotes
+**Primary User Activity**: Acting and Creating - users perform administrative tasks, generate business-critical quotes, manage warehouse operations, process invoices, and handle customer returns
 
 ## Thought Process for Feature Selection
 
-**Core Problem Analysis**: Administrative users need tools to manage critical business data (benchmark pricing) and generate accurate quotes for logistics services. The system must provide transparency in operations and confidence in data integrity.
+**Core Problem Analysis**: Administrative users need comprehensive tools to manage the entire logistics business lifecycle - from pricing data management and quote generation to warehouse operations, billing, and returns processing. The system must provide transparency, accuracy, and efficiency across all business operations.
 
-**User Context**: Admin users access this system daily for operational monitoring and periodically for data updates. Quote generation may be used frequently for customer inquiries and business development.
+**User Context**: Admin users access this system throughout the business day for real-time operational monitoring, periodic data updates, customer service, billing management, and returns processing.
 
 **Critical Path**: 
-1. Dashboard overview of system status
-2. Import benchmark data when updates are available
-3. Generate quotes for customer inquiries
-4. Monitor system operations and performance
+1. Dashboard overview of all system operations
+2. Import and maintain current benchmark pricing data
+3. Generate accurate quotes for customer inquiries
+4. Monitor and manage warehouse operations (receiving, fulfillment, picking, packing)
+5. Process and track invoices from creation to payment
+6. Handle customer returns and RMA requests efficiently
+7. Monitor system performance and troubleshoot issues
 
 **Key Moments**: 
 1. Data validation feedback for imports
 2. Quote generation with detailed pricing breakdown
-3. Error handling and resolution guidance
-4. System status monitoring
+3. Real-time warehouse operation tracking
+4. Invoice status changes and payment processing
+5. RMA authorization and processing decisions
+6. Error handling and resolution guidance
+7. System status monitoring and alerts
 
 ## Essential Features
 
 ### Dashboard Overview
-- **Functionality**: Display key metrics, recent activity, and system status
-- **Purpose**: Provide at-a-glance view of system health and operations
-- **Success Criteria**: Metrics are current, accurate, and actionable
+- **Functionality**: Display key metrics, recent activity, and system status across all business areas
+- **Purpose**: Provide at-a-glance view of comprehensive business operations
+- **Success Criteria**: Metrics are current, accurate, and actionable across pricing, warehouse, billing, and returns
 
 ### Benchmark Data Import System
 - **Functionality**: Upload, validate, and import benchmark pricing CSV files
@@ -53,93 +62,114 @@
 - **Purpose**: Provide accurate, consistent pricing for logistics services
 - **Success Criteria**: Quotes are mathematically correct and include all required line items
 
+### Warehouse Management System (WMS)
+- **Functionality**: Track receiving, inventory, order fulfillment, picking, and packing operations
+- **Purpose**: Provide complete visibility and control over warehouse operations
+- **Success Criteria**: All warehouse operations are tracked, exceptions are flagged, and efficiency metrics are maintained
+
+### Invoice Management System
+- **Functionality**: Create, issue, track, and manage invoices through their complete lifecycle
+- **Purpose**: Streamline billing operations and maintain accurate financial records
+- **Success Criteria**: Invoices progress smoothly from draft to payment with full audit trails
+
+### Returns/RMA Management System
+- **Functionality**: Process customer return requests, authorize returns, track received items, and generate credit memos
+- **Purpose**: Provide efficient customer service for returns while maintaining inventory accuracy
+- **Success Criteria**: Returns are processed efficiently with proper authorization, tracking, and financial resolution
+
 ### Version Management
 - **Functionality**: Require version ID input to track import batches
 - **Purpose**: Enable data versioning and rollback capabilities
-- **Success Criteria**: Version ID is captured and associated with the import
-
-### Import Mode Selection
-- **Functionality**: Allow users to choose between "replace" (complete replacement) or "upsert" (update existing, insert new) modes
-- **Purpose**: Provide flexibility in how data updates are applied to the database
-- **Success Criteria**: Mode selection affects the import behavior and is clearly communicated to the user
+- **Success Criteria**: Version ID is captured and associated with all imports
 
 ### Comprehensive Validation
-- **Functionality**: Validate data structure, types, business rules, and cross-file references
-- **Purpose**: Prevent corrupted or invalid data from entering the system
-- **Success Criteria**: All validation rules are enforced and results are clearly communicated
-
-### Results Display
-- **Functionality**: Show per-file validation results, overall status, and detailed error/warning lists
-- **Purpose**: Give users complete visibility into data quality and any issues that need resolution
-- **Success Criteria**: Users can quickly identify and address any data issues
-
-### Import Execution
-- **Functionality**: Commit validated data to the system after user confirmation with full audit trail
-- **Purpose**: Complete the data import process safely with comprehensive tracking
-- **Success Criteria**: Data is imported successfully with detailed results showing inserted/updated/deleted record counts
+- **Functionality**: Validate data structure, types, business rules, and cross-system references
+- **Purpose**: Prevent corrupted or invalid data from entering any system component
+- **Success Criteria**: All validation rules are enforced across all business processes
 
 ### Audit and Tracking
-- **Functionality**: Create detailed audit records for each import operation including timing, user, and data change counts
-- **Purpose**: Provide accountability and traceability for all data changes
-- **Success Criteria**: Complete audit trail is maintained for compliance and troubleshooting
+- **Functionality**: Create detailed audit records for all operations including timing, user, and change tracking
+- **Purpose**: Provide accountability and traceability for compliance and troubleshooting
+- **Success Criteria**: Complete audit trail is maintained across all business operations
 
 ## Design Direction
 
 ### Visual Tone & Identity
-**Emotional Response**: Users should feel confident and in control when handling critical business data
-**Design Personality**: Professional, systematic, and trustworthy
-**Visual Metaphors**: Document processing, data validation checkmarks, structured workflows
-**Simplicity Spectrum**: Clean interface that doesn't overwhelm users with unnecessary complexity while providing comprehensive feedback
-
-### Color Strategy
-**Color Scheme Type**: Custom palette based on existing application theme
-**Primary Color**: `oklch(0.25 0.08 240)` - professional blue for primary actions
-**Secondary Colors**: `oklch(0.95 0.005 240)` - light blue for secondary elements
-**Accent Color**: `oklch(0.7 0.15 45)` - warm orange for highlights and CTAs
-**Status Colors**: 
-- Success: Green (`oklch(0.6 0.15 142)`) for valid data
-- Warning: Yellow (`oklch(0.7 0.15 65)`) for warnings
-- Error: Red (`oklch(0.577 0.245 27.325)`) for validation failures
-
-### Typography System
-**Font Pairing Strategy**: Single font family (Inter) with weight variations for hierarchy
-**Typographic Hierarchy**: 
-- Page title: 30px, bold
-- Section headers: 20px, semibold  
-- Body text: 14px, regular
-- Detail text: 12px, regular
-**Font Personality**: Clean, modern, highly legible for data-heavy interfaces
-
-## Design Direction
-
-### Visual Tone & Identity
-**Emotional Response**: Users should feel confident and in control when handling critical business data and generating accurate quotes
-**Design Personality**: Professional, systematic, and trustworthy with modern dashboard aesthetics
-**Visual Metaphors**: Command center operations, data validation checkmarks, pricing calculations
+**Emotional Response**: Users should feel confident and in control when managing comprehensive business operations
+**Design Personality**: Professional, systematic, trustworthy, and efficient
+**Visual Metaphors**: Command center operations, workflow progression, status indicators, business process management
 **Simplicity Spectrum**: Clean interface that provides comprehensive information without overwhelming users
 
 ### Color Strategy
-**Color Scheme Type**: Monochromatic blue with warm accent
+**Color Scheme Type**: Monochromatic blue with strategic color coding for different business areas
 **Primary Color**: `oklch(0.25 0.08 240)` - professional blue for primary actions
 **Secondary Colors**: `oklch(0.95 0.005 240)` - light blue for secondary elements
 **Accent Color**: `oklch(0.7 0.15 45)` - warm orange for highlights and CTAs
+**Business Area Color Coding**:
+- Warehouse: Green (`oklch(0.6 0.15 142)`) for operations
+- Billing: Blue (primary) for financial operations
+- Returns: Orange (accent) for customer service
 **Status Colors**: 
 - Success: Green for valid data and successful operations
 - Warning: Yellow for warnings and advisory information
 - Error: Red for validation failures and errors
+- Processing: Blue for in-progress operations
 
 ### Typography System
 **Font Pairing Strategy**: Inter font family with weight variations for clear hierarchy
-**Typography Consistency**: Consistent sizing and spacing across all components
-**Legibility Check**: High contrast ratios maintained for all text elements
+**Typography Consistency**: Consistent sizing and spacing across all components and business areas
+**Legibility Check**: High contrast ratios maintained for all text elements, especially in data-heavy interfaces
 
 ### UI Elements & Component Selection
 **Component Usage**:
-- Dashboard cards for metrics and system status
-- Forms with validation for data input
-- Tables for detailed results display
-- Progress indicators for async operations
-- Status badges for clear state communication
+- Dashboard cards for metrics and system status across all business areas
+- Forms with comprehensive validation for all data input
+- Tables for detailed results and data display
+- Progress indicators for all async operations
+- Status badges for clear state communication across business processes
+- Modal dialogs for critical operations requiring confirmation
+- Tabbed interfaces for organizing complex workflows
+
+## Edge Cases & Problem Scenarios
+
+**Potential Obstacles**:
+- Large CSV files may cause performance issues
+- Quote generation with missing benchmark data
+- Warehouse exceptions requiring manual intervention
+- Invoice disputes requiring status changes
+- Return authorization decisions requiring manager approval
+- Network interruptions during critical operations
+- Invalid data formats across all input points
+
+**Edge Case Handling**:
+- File validation and chunked processing for large uploads
+- Graceful fallbacks for missing pricing data
+- Exception queues with manager escalation paths
+- Flexible invoice status management with audit trails
+- Multi-level RMA authorization workflows
+- Clear error messages with resolution guidance
+- Progress feedback and recovery options for long operations
+
+## Implementation Considerations
+
+**Architecture**: Modular design with clear separation between pricing, warehouse, billing, and returns systems
+**Data Persistence**: Comprehensive state management for complex business workflows
+**Error Handling**: System-wide error catching with context-aware user guidance
+**Performance**: Efficient data processing and responsive UI across all business operations
+**Security**: Role-based access controls and audit trails for compliance
+
+**Testing Focus**: 
+- Validation logic accuracy across all business areas
+- Quote calculation correctness
+- Warehouse operation state management
+- Invoice financial calculation accuracy
+- RMA authorization and processing workflows
+- Cross-system data integrity
+- API error handling and recovery
+
+## Reflection
+
+This comprehensive command center approach provides administrators with complete control over the entire logistics business lifecycle. The integration of pricing management, warehouse operations, billing, and returns processing in a unified interface creates maximum operational efficiency. The professional design and comprehensive feedback mechanisms build user confidence when managing critical business operations across all functional areas. The system scales from simple data imports to complex business process management while maintaining usability and reliability.
 
 ## Edge Cases & Problem Scenarios
 
