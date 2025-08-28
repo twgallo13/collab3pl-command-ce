@@ -24,6 +24,7 @@ import { BenchmarkImportPage } from '@/components/BenchmarkImportPage'
 import { QuoteGeneratorPage } from '@/components/QuoteGeneratorPage'
 import { InvoiceManagementPage } from '@/components/InvoiceManagementPage'
 import { InvoiceDetailPage } from '@/components/InvoiceDetailPage'
+import { WmsReceivingPage } from '@/components/WmsReceivingPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -675,6 +676,8 @@ export default function App() {
         return <BenchmarkImportPage />
       case 'quote-generator':
         return <QuoteGeneratorPage />
+      case 'wms':
+        return <WmsReceivingPage />
       case 'billing':
         if (selectedInvoice) {
           return (
