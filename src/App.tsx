@@ -27,6 +27,7 @@ import { InvoiceDetailPage } from '@/components/InvoiceDetailPage'
 import { WmsReceivingPage } from '@/components/WmsReceivingPage'
 import { WmsManagerDashboard } from '@/components/WmsManagerDashboard'
 import { WmsPickingPage } from '@/components/WmsPickingPage'
+import { WmsPackoutPage } from '@/components/WmsPackoutPage'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -45,6 +46,7 @@ function Sidebar({ isOpen, onClose, activeItem, onItemClick }: SidebarProps) {
     { id: 'wms', label: 'WMS Receiving', icon: Package },
     { id: 'wms-dashboard', label: 'WMS Dashboard', icon: Package },
     { id: 'wms-picker', label: 'WMS Picker', icon: Package },
+    { id: 'wms-packout', label: 'WMS Packout', icon: Package },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'quote-generator', label: 'Quote Generator', icon: Calculator },
@@ -686,6 +688,8 @@ export default function App() {
         return <WmsManagerDashboard />
       case 'wms-picker':
         return <WmsPickingPage />
+      case 'wms-packout':
+        return <WmsPackoutPage />
       case 'billing':
         if (selectedInvoice) {
           return (
