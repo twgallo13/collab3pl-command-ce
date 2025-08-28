@@ -14,11 +14,11 @@ import { Separator } from '@/components/ui/separator'
 import { 
   Calculator, 
   Plus, 
-  Trash2, 
+  Trash, 
   CheckCircle, 
-  AlertCircle,
-  DollarSign,
-  TrendingDown
+  Warning,
+  CurrencyDollar,
+  ArrowDown
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { generateQuote } from '@/api/quotes/price'
@@ -486,7 +486,7 @@ export function QuoteGeneratorPage() {
                         onClick={() => removeVasItem(index)}
                         className="mb-0"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
@@ -550,7 +550,7 @@ export function QuoteGeneratorPage() {
                         onClick={() => removeDiscountItem(index)}
                         className="mb-0"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
@@ -564,7 +564,7 @@ export function QuoteGeneratorPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-destructive">
-                  <AlertCircle className="h-5 w-5" />
+                  <Warning className="h-5 w-5" />
                   Form Errors
                 </CardTitle>
               </CardHeader>
@@ -714,7 +714,7 @@ export function QuoteGeneratorPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <TrendingDown className="h-5 w-5 text-green-600" />
+                      <ArrowDown className="h-5 w-5 text-green-600" />
                       Discounts Applied
                     </CardTitle>
                   </CardHeader>
@@ -735,7 +735,7 @@ export function QuoteGeneratorPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
+                    <CurrencyDollar className="h-5 w-5" />
                     Final Totals
                   </CardTitle>
                 </CardHeader>
@@ -765,7 +765,7 @@ export function QuoteGeneratorPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-green-600">
-                      <TrendingDown className="h-5 w-5" />
+                      <ArrowDown className="h-5 w-5" />
                       Cost Savings
                     </CardTitle>
                   </CardHeader>

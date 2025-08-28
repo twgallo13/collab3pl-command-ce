@@ -14,7 +14,6 @@ import {
   Warning, 
   XCircle, 
   FileText, 
-  AlertTriangle,
   Check,
   X,
   Database,
@@ -567,7 +566,7 @@ export function BenchmarkImportPage() {
           <CardContent>
             {!validationResults ? (
               <div className="text-center py-8 text-muted-foreground">
-                <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <Warning className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Upload files and click "Validate Files" to see results</p>
               </div>
             ) : (

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Package, Scan, CheckCircle, AlertCircle } from '@phosphor-icons/react'
+import { Package, Scan, CheckCircle, Warning } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { ReceivingScanRequest, ReceivingScanResponse } from '@/types/wms'
 import { processScan } from '@/app/api/wms/receiving/[poId]/scan/route'
@@ -240,7 +240,7 @@ export function WmsReceivingPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
+            <Warning className="h-5 w-5" />
             Instructions
           </CardTitle>
         </CardHeader>

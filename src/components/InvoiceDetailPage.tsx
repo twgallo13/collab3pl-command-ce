@@ -13,12 +13,12 @@ import {
 import { 
   ArrowLeft, 
   Download, 
-  Edit,
+  NotePencil,
   Calendar,
-  DollarSign,
+  CurrencyDollar,
   User,
   FileText,
-  Building,
+  Buildings,
   PaperPlaneTilt,
   X,
   CheckCircle,
@@ -504,7 +504,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <DollarSign size={20} className="text-primary" />
+              <CurrencyDollar size={20} className="text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Grand Total</p>
                 <p className="text-xl font-bold">{formatCurrency(invoice.totals.grandTotal)}</p>
@@ -540,7 +540,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Building size={20} className="text-muted-foreground" />
+              <Buildings size={20} className="text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Terms</p>
                 <p className="font-medium">{invoice.dateRange.terms}</p>
@@ -732,7 +732,7 @@ export function InvoiceDetailPage({ invoiceId, onNavigateBack }: InvoiceDetailPa
               size="sm"
               onClick={() => setEditingNotes(!editingNotes)}
             >
-              <Edit size={16} className="mr-2" />
+              <NotePencil size={16} className="mr-2" />
               {editingNotes ? 'Cancel' : 'Edit Notes'}
             </Button>
           </div>

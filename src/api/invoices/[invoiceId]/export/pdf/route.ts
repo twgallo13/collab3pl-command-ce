@@ -1,133 +1,104 @@
 /**
- * PDF Export API Route
+ * API route for exporting invoices as PDF files
+ */
 
-imp
+import { Invoice } from '@/types/invoices'
 
-  return {
-      invoiceId: invoiceId,
-
-      lastModifiedOn: '2024-01-15T10:00:00Z',
-    },
+// Mock function to get invoice data - in production, this would fetch from database
+function getMockInvoice(invoiceId: string): Invoice | null {
+  if (!invoiceId) return null
+  
   return {
     meta: {
-      invoiceId: invoiceId,
+      invoiceId,
       status: 'issued',
       currency: 'USD',
+      version: 1,
       createdOn: '2024-01-15T10:00:00Z',
-      lastModifiedOn: '2024-01-15T10:00:00Z',
-      version: 1
+      lastModifiedOn: '2024-02-01T09:00:00Z'
     },
     client: {
       accountId: 'ACCT_001',
       name: 'Acme Corporation',
+      email: 'billing@acme.com',
+      address: {
+        line1: '123 Business Street',
+        line2: 'Suite 100',
+        city: 'Los Angeles',
+        state: 'CA',
+        zipCode: '90210',
+        country: 'United States'
+      },
       billingContact: {
         name: 'John Smith',
         email: 'billing@acme.com',
         phone: '+1 (555) 123-4567'
-        
-      billingAddress: {
-        line1: '123 Business Street',
-        line2: 'Suite 100',
-    dateRange: {
-        state: 'CA',
-      issuedOn: '2024-02-
-        country: 'United States'
+      }
     },
-      
     dateRange: {
       periodStart: '2024-01-01',
       periodEnd: '2024-01-31',
       issuedOn: '2024-02-01',
-      },
-        id: '3'
-      
-        quantity:
-        unitRate: 0.85,
-        discountable: true
-      {
-      
-        descript
-       
-        extended
-      }
-    discounts: [
-        id: 'disc1',
-        amount: 5,
-        applyTo: 'all',
-      }
-    tax: {
-        discountable: true
-      },
-      {
+      dueOn: '2024-02-16',
+      terms: 15
     },
-      subtotal: 5075.00,
-      nonDiscountableSubtotal: 0.
-      discountAmount: 253.75,
-      discountedSubtot
-      taxAmount: 409.81
-      grandTotal: 5231.
-        {
-          appliedToAmount:
-      ]
-    not
-      internal: 
+    references: {
+      quoteId: 'QUO-2024-001',
+      rateCardVersionId: 'v2024.1'
     },
-      events: [
-          timestamp: '2024-01-15T10:00:00
-          userId: 'admi
-        }
-      inputsSnapshot: {
-    exports: {
-    }
-}
-export 
-        id: '4',
-        category: 'vas',
-        serviceCode: 'VAS_LABEL',
-        description: 'Label Application',
-        quantity: 250,
-        unit: 'labels',
-        unitRate: 0.50,
-        extendedCost: 125.00,
+    lineItems: [
+      {
+        id: 'LI_001',
+        category: 'Receiving',
+        serviceCode: 'REC_PALLET',
+        description: 'Pallet receiving service',
+        quantity: 100,
+        unit: 'pallet',
+        unitRate: 25.0000,
+        extendedCost: 2500.00,
+        discountable: true
+      },
+      {
+        id: 'LI_002',
+        category: 'Fulfillment',
+        serviceCode: 'FUL_ORDER',
+        description: 'Order fulfillment service',
+        quantity: 200,
+        unit: 'order',
+        unitRate: 15.0000,
+        extendedCost: 3000.00,
         discountable: true
       }
     ],
-    discounts: [
-      {
-        id: 'disc1',
-        type: 'percentage',
-        amount: 5,
-        description: 'Volume Discount (5%)',
-        applyTo: 'all',
-        appliedAmount: 253.75
-      }
-    ],
+    discounts: [],
     tax: {
       enabled: true,
-      rate: 8.5,
+      rate: 8.75,
       basis: 'discounted_subtotal'
     },
     rounding: {
-      mode: 'standard',
+      mode: 'round',
       precision: 2
     },
     totals: {
-      subtotal: 5075.00,
-      discountAmount: 253.75,
-      discountedSubtotal: 4821.25,
-      taxAmount: 409.81,
-      grandTotal: 5231.06
+      subtotal: 5500.00,
+      discountableSubtotal: 5500.00,
+      nonDiscountableSubtotal: 0.00,
+      discountAmount: 0.00,
+      discountedSubtotal: 5500.00,
+      taxAmount: 481.25,
+      grandTotal: 5981.25
     },
     notes: {
-      vendorVisible: 'Thank you for your business. Payment terms are Net 15.',
-      internal: 'Client has been consistently paying on time.',
-      history: ['Invoice created', 'Invoice issued']
+      internal: 'Client has been consistently on time with payments',
+      vendorVisible: 'Thank you for your business',
+      history: []
     },
     audit: {
       events: [
         {
+          action: 'created',
           timestamp: '2024-01-15T10:00:00Z',
-          event: 'created',
           userId: 'admin',
           details: 'Invoice created for January services'
         }
@@ -138,6 +109,43 @@ export
       pdfGeneratedOn: '2024-02-01T09:00:00Z'
     }
   }
+}
+
+function formatCurrency(amount: number): string {
+  return `$${amount.toFixed(2)}`
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+function generatePDFContent(invoice: Invoice): string {
+  // In a real implementation, this would use a PDF generation library
+  // For now, we'll simulate the PDF generation process
+  
+  const content = {
+    invoice: invoice.meta.invoiceId,
+    client: invoice.client.name,
+    issuedDate: formatDate(invoice.dateRange.issuedOn),
+    dueDate: formatDate(invoice.dateRange.dueOn),
+    lineItems: invoice.lineItems.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      rate: formatCurrency(item.unitRate),
+      amount: formatCurrency(item.extendedCost)
+    })),
+    subtotal: formatCurrency(invoice.totals.subtotal),
+    tax: formatCurrency(invoice.totals.taxAmount),
+    total: formatCurrency(invoice.totals.grandTotal),
+    notes: invoice.notes.vendorVisible
+  }
+  
+  return JSON.stringify(content, null, 2)
 }
 
 export async function POST(request: Request, { params }: { params: { invoiceId: string } }) {
@@ -154,204 +162,39 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
       })
     }
 
-    // Generate PDF
-    const pdf = new jsPDF('portrait', 'mm', 'a4')
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const margin = 20
-    }
+    // Generate PDF content (simulated)
+    const pdfContent = generatePDFContent(invoice)
+    
+    // In a real implementation, this would:
+    // 1. Use a PDF library like pdf-lib or Puppeteer
+    // 2. Generate an actual PDF document
+    // 3. Store it or return a download URL
+    
+    // For demo purposes, we'll return a base64 encoded "PDF"
+    const mockPdfData = `data:application/pdf;base64,${btoa(pdfContent)}`
 
-    pdf.rect(totalsX - 
-    pdf.setTextColor(255, 255, 255)
-    addText(formatCurrency(invoice.totals.gra
-    pdf.setTextColor(0, 0,
-
-    if (invoice.notes?.
-     
-
-    const footerY = pdf.internal.pageSize.getHei
-    pdf.rect(0, footerY - 5, pageWidth, 25, 'F')
-
-    const pdfBase64 = p
-    // Update exports 
-      ..
-     
-
-
+    // Update exports timestamp (in real implementation, would update database)
+    const now = new Date().toISOString()
+    
+    return new Response(JSON.stringify({
       success: true,
       filename: `${invoice.meta.invoiceId}.pdf`,
+      pdfData: mockPdfData,
+      exportedOn: now,
+      message: 'PDF generated successfully (simulated)'
     }), {
-      
-      }
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    })
 
-    console.error('PDF generation err
-      
+  } catch (error) {
+    console.error('PDF generation error:', error)
+    return new Response(JSON.stringify({ 
+      error: 'Failed to generate PDF export',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }), {
-     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+}

@@ -1,8 +1,7 @@
 /**
- * Handles wave-specific operations including picklist generation
+ * API route for wave operations including picklist generation
  */
 
-import { NextResponse } from 'next/server'
 import { Wave, Order, Inventory, Bin } from '@/types/wms'
 
 interface PicklistItem {
@@ -29,10 +28,10 @@ export async function GET(
     const { waveId } = params
     
     if (!waveId) {
-      return NextResponse.json(
-        { error: 'waveId is required' },
-        { status: 400 }
-      )
+      return new Response(JSON.stringify({ error: 'waveId is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     // Mock data - in real implementation, fetch from Firestore
@@ -195,20 +194,23 @@ export async function GET(
       return a.location.position.localeCompare(b.location.position)
     })
 
-    return NextResponse.json({
+    return new Response(JSON.stringify({
       wave: mockWave,
       orders: mockOrders,
       picklist: picklistItems
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
     console.error('Wave retrieval error:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to retrieve wave data',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return new Response(JSON.stringify({ 
+      error: 'Failed to retrieve wave data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 }

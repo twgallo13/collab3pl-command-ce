@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { Package, Scale, Ruler, CheckCircle, AlertCircle } from '@phosphor-icons/react'
+import { Package, Scales, Ruler, CheckCircle, Warning } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface OrderItem {
@@ -227,7 +227,7 @@ export function WmsPackoutPage() {
                         {item.picked ? (
                           <CheckCircle className="h-4 w-4 text-green-600" />
                         ) : (
-                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                          <Warning className="h-4 w-4 text-yellow-600" />
                         )}
                         <div>
                           <div className="font-medium">{item.sku}</div>
@@ -245,7 +245,7 @@ export function WmsPackoutPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Scale className="h-5 w-5" />
+                <Scales className="h-5 w-5" />
                 Carton Details
               </CardTitle>
             </CardHeader>

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { AlertTriangle, Package, CheckCircle, Play, ChevronDown, ChevronRight } from '@phosphor-icons/react'
+import { Warning, Package, CheckCircle, Play, CaretDown, CaretRight } from '@phosphor-icons/react'
 import { Order } from '@/types/wms'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -361,7 +361,7 @@ export function WmsManagerDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Exceptions</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <Warning className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{orderCounts.exceptions}</div>
@@ -471,9 +471,9 @@ export function WmsManagerDashboard() {
                               className="p-0 h-6 w-6"
                             >
                               {expandedOrders.includes(order.orderId) ? (
-                                <ChevronDown size={16} />
+                                <CaretDown size={16} />
                               ) : (
-                                <ChevronRight size={16} />
+                                <CaretRight size={16} />
                               )}
                             </Button>
                           ) : null}
@@ -511,7 +511,7 @@ export function WmsManagerDashboard() {
                           <TableCell colSpan={8}>
                             <div className="bg-muted/50 p-4 rounded-lg space-y-3">
                               <h4 className="font-medium text-sm flex items-center gap-2">
-                                <AlertTriangle size={16} className="text-red-600" />
+                                <Warning size={16} className="text-red-600" />
                                 Exception Details
                               </h4>
                               <div className="space-y-2">

@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { 
   Package, 
   CheckCircle, 
-  AlertTriangle,
+  Warning,
   ArrowLeft,
   MapPin,
   Clock
@@ -295,7 +295,7 @@ export function WmsPickingPage({}: WmsPickingPageProps) {
                                 </>
                               ) : (
                                 <>
-                                  <AlertTriangle size={16} className="mr-1" />
+                                  <Warning size={16} className="mr-1" />
                                   Not Found
                                 </>
                               )}
@@ -304,7 +304,7 @@ export function WmsPickingPage({}: WmsPickingPageProps) {
                         )}
                         {item.status === 'not_found' && (
                           <Badge variant="destructive" className="flex items-center gap-1">
-                            <AlertTriangle size={14} />
+                            <Warning size={14} />
                             Flagged as Missing
                           </Badge>
                         )}

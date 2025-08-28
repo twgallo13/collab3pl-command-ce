@@ -18,11 +18,11 @@ import {
 } from '@/components/ui/table'
 import { 
   CreditCard, 
-  Search, 
-  Filter,
+  MagnifyingGlass, 
+  Funnel,
   Eye,
   Download,
-  Mail
+  Envelope
 } from '@phosphor-icons/react'
 import { Invoice } from '@/types/invoices'
 import { toast } from 'sonner'
@@ -223,7 +223,7 @@ export function InvoiceManagementPage({ onNavigateToDetail }: InvoiceManagementP
           <div className="flex gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <MagnifyingGlass className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by invoice number or client name..."
                   value={searchTerm}
@@ -233,7 +233,7 @@ export function InvoiceManagementPage({ onNavigateToDetail }: InvoiceManagementP
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Funnel className="h-4 w-4 text-muted-foreground" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -331,7 +331,7 @@ export function InvoiceManagementPage({ onNavigateToDetail }: InvoiceManagementP
                             size="sm"
                             onClick={(e) => handleSendEmail(invoice.meta.invoiceId, e)}
                           >
-                            <Mail size={16} />
+                            <Envelope size={16} />
                           </Button>
                         </div>
                       </TableCell>
