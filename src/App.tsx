@@ -25,6 +25,7 @@ import { QuoteGeneratorPage } from '@/components/QuoteGeneratorPage'
 import { InvoiceManagementPage } from '@/components/InvoiceManagementPage'
 import { InvoiceDetailPage } from '@/components/InvoiceDetailPage'
 import { WmsReceivingPage } from '@/components/WmsReceivingPage'
+import { WmsManagerDashboard } from '@/components/WmsManagerDashboard'
 import { commitImports, CommitRequest, CommitResponse } from '@/api/benchmarks/imports/commit'
 import { generateQuote, QuotePriceEndpoint } from '@/api/quotes/price'
 import { QuoteRequest, QuoteResponse } from '@/lib/quoteService'
@@ -40,7 +41,8 @@ interface SidebarProps {
 function Sidebar({ isOpen, onClose, activeItem, onItemClick }: SidebarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: House },
-    { id: 'wms', label: 'WMS', icon: Package },
+    { id: 'wms', label: 'WMS Receiving', icon: Package },
+    { id: 'wms-dashboard', label: 'WMS Dashboard', icon: Package },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'quote-generator', label: 'Quote Generator', icon: Calculator },
@@ -678,6 +680,8 @@ export default function App() {
         return <QuoteGeneratorPage />
       case 'wms':
         return <WmsReceivingPage />
+      case 'wms-dashboard':
+        return <WmsManagerDashboard />
       case 'billing':
         if (selectedInvoice) {
           return (
