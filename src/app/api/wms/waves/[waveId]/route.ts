@@ -1,13 +1,13 @@
 /**
- * WMS Individual Wave API Route
+ * Handles wave-specific operati
  * Handles wave-specific operations including picklist generation
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { Wave, Inventory, Order, Picklist, PicklistItem, Bin } from '@/types/wms'
-
 export async function GET(
-  request: NextRequest,
+  { params }: { params: { waveId: string } }
+
+    
+      return NextRespon
   { params }: { params: { waveId: string } }
 ) {
   try {
@@ -38,46 +38,46 @@ export async function GET(
         clientId: 'CLIENT-001',
         status: 'picking',
         items: [
-          { sku: 'SKU-001', qty: 2, status: 'pending' },
-          { sku: 'SKU-002', qty: 1, status: 'pending' }
-        ],
-        waveId,
-        exceptions: [],
-        priority: 'normal',
-        createdAt: '2024-01-15T14:00:00Z',
-        updatedAt: '2024-01-15T15:00:00Z'
       },
-      {
         orderId: 'ORDER-005',
-        clientId: 'CLIENT-002',
-        status: 'picking',
-        items: [
-          { sku: 'SKU-001', qty: 1, status: 'pending' },
-          { sku: 'SKU-003', qty: 3, status: 'pending' }
+        st
+          { sku
         ],
-        waveId,
         exceptions: [],
-        priority: 'high',
         createdAt: '2024-01-15T14:30:00Z',
-        updatedAt: '2024-01-15T15:00:00Z'
       }
-    ]
 
-    // Mock inventory data
-    const mockInventory: Inventory[] = [
-      {
+    con
         invId: 'INV-001',
-        sku: 'SKU-001',
         labelId: 'LBL-001',
-        binId: 'BIN-A1-01',
         poId: 'PO-001',
-        qty: 5,
-        status: 'putaway',
-        receivedAt: '2024-01-10T09:00:00Z',
+        status: 
         updatedAt: '2024-01-10T09:00:00Z',
-        receivedBy: 'edgar'
       },
+        in
+        labelId
+        poId: 'PO-001',
+        status: 'putaway'
+        updatedAt: '2024-01-10T09:15:00Z',
+      },
+       
+     
+
+        status: 'putaway',
+        updatedAt: '2024-01-12T10:00:00Z
+      }
+
+    const mockBins: Bin
+        binId: 'BIN-A1-01',
+        capacityUnits: 10,
+        status: 'active
+        updated
       {
+        location: { zone: 'A', aisle: '1', 
+        currentUnits: 2,
+        createdAt: '2024-01
+      },
+       
         invId: 'INV-002',
         sku: 'SKU-002',
         labelId: 'LBL-002',
@@ -158,48 +158,47 @@ export async function GET(
               binId: inventory.binId,
               location: bin?.location || { zone: '', aisle: '', shelf: '', position: '' },
               orderId: order.orderId,
-              status: 'pending'
-            })
-          }
-        }
-      }
-    }
 
-    // Sort by location to optimize picking path (zone -> aisle -> shelf -> position)
-    picklistItems.sort((a, b) => {
-      if (a.location.zone !== b.location.zone) {
-        return a.location.zone.localeCompare(b.location.zone)
-      }
-      if (a.location.aisle !== b.location.aisle) {
-        return a.location.aisle.localeCompare(b.location.aisle)
-      }
-      if (a.location.shelf !== b.location.shelf) {
-        return a.location.shelf.localeCompare(b.location.shelf)
-      }
-      return a.location.position.localeCompare(b.location.position)
-    })
 
-    const picklist: Picklist = {
-      waveId,
-      items: picklistItems,
-      totalItems: picklistItems.length,
-      pickedItems: picklistItems.filter(item => item.status === 'picked').length,
-      status: 'in_progress'
-    }
 
-    return NextResponse.json({
-      success: true,
-      data: picklist
-    })
 
-  } catch (error) {
-    console.error('Error generating picklist:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate picklist',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
