@@ -81,3 +81,38 @@ export interface ReceivingScanResponse {
   status: 'success'
   message: string
 }
+
+// Picking workflow types
+export interface PicklistItem {
+  invId: string
+  sku: string
+  variant?: string
+  qty: number
+  binId: string
+  location: {
+    zone: string
+    aisle: string
+    shelf: string
+    position: string
+  }
+  orderId: string
+  status: 'pending' | 'picked' | 'not_found'
+}
+
+export interface Picklist {
+  waveId: string
+  items: PicklistItem[]
+  totalItems: number
+  pickedItems: number
+  status: 'in_progress' | 'completed'
+}
+
+export interface PickItemRequest {
+  invId: string
+}
+
+export interface PickItemResponse {
+  invId: string
+  status: 'success'
+  message: string
+}
