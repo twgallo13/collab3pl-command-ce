@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AlertTriangle, Package, CheckCircle, Play } from '@phosphor-icons/react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { AlertTriangle, Package, CheckCircle, Play, ChevronDown, ChevronRight } from '@phosphor-icons/react'
 import { Order } from '@/types/wms'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -16,6 +20,119 @@ interface OrderCounts {
   total: number
 }
 
+interface ExceptionDetails {
+  id: string
+  sku: string
+  code: string
+  actor: string
+  timestamp: string
+  resolved: boolean
+}
+
+interface ExceptionResolutionModalProps {
+  exception: ExceptionDetails
+  orderId: string
+  onResolve: () => void
+}
+
+function ExceptionResolutionModal({ exception, orderId, onResolve }: ExceptionResolutionModalProps) {
+  const [notes, setNotes] = useState('')
+  const [isResolving, setIsResolving] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleResolve = async () => {
+    setIsResolving(true)
+    
+    try {
+      const response = await fetch(`/api/wms/orders/${orderId}/exceptions/${exception.id}/resolve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'close',
+          notes
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to resolve exception')
+      }
+
+      const result = await response.json()
+      
+      toast.success('Exception resolved successfully', {
+        description: `Order ${orderId} has been updated`
+      })
+
+      setIsOpen(false)
+      setNotes('')
+      onResolve()
+      
+    } catch (error) {
+      toast.error('Failed to resolve exception', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setIsResolving(false)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          Resolve
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Resolve Exception</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="text-sm">
+              <strong>Order:</strong> {orderId}
+            </div>
+            <div className="text-sm">
+              <strong>SKU:</strong> {exception.sku}
+            </div>
+            <div className="text-sm">
+              <strong>Issue:</strong> {exception.code.replace('_', ' ')}
+            </div>
+            <div className="text-sm">
+              <strong>Reported by:</strong> {exception.actor}
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="resolution-notes">Resolution Notes</Label>
+            <Textarea
+              id="resolution-notes"
+              placeholder="Enter notes about how this exception was resolved..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+            />
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleResolve} 
+              disabled={isResolving || !notes.trim()}
+            >
+              {isResolving ? 'Resolving...' : 'Resolve Exception'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function WmsManagerDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
@@ -23,6 +140,7 @@ export function WmsManagerDashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
   const [isReleasingWave, setIsReleasingWave] = useState(false)
+  const [expandedOrders, setExpandedOrders] = useState<string[]>([])
   const [orderCounts, setOrderCounts] = useState<OrderCounts>({
     open: 0,
     readyToPick: 0,
@@ -104,6 +222,19 @@ export function WmsManagerDashboard() {
     } else {
       setSelectedOrders([])
     }
+  }
+
+  const toggleOrderExpansion = (orderId: string) => {
+    setExpandedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    )
+  }
+
+  const handleExceptionResolved = () => {
+    // Refresh the orders data after an exception is resolved
+    fetchOrders()
   }
 
   const releaseWave = async () => {
@@ -321,48 +452,106 @@ export function WmsManagerDashboard() {
                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
-                    <TableRow key={order.orderId}>
-                      <TableCell>
-                        {order.status === 'ready_to_pick' ? (
-                          <Checkbox
-                            checked={selectedOrders.includes(order.orderId)}
-                            onCheckedChange={(checked) => 
-                              handleOrderSelection(order.orderId, checked as boolean)
-                            }
-                            aria-label={`Select order ${order.orderId}`}
-                          />
-                        ) : null}
-                      </TableCell>
-                      <TableCell className="font-medium">{order.orderId}</TableCell>
-                      <TableCell>{order.clientId}</TableCell>
-                      <TableCell>{formatDate(order.dueDate)}</TableCell>
-                      <TableCell>{getStatusBadge(order.status)}</TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {order.waveId ? (
-                          <Badge variant="outline">{order.waveId}</Badge>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {order.exceptions.length > 0 ? (
-                          <div className="space-y-1">
-                            {order.exceptions.map((exception, index) => (
-                              <Badge key={index} variant="destructive" className="text-xs">
-                                {exception.type.replace('_', ' ')}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                    <React.Fragment key={order.orderId}>
+                      <TableRow>
+                        <TableCell>
+                          {order.status === 'ready_to_pick' ? (
+                            <Checkbox
+                              checked={selectedOrders.includes(order.orderId)}
+                              onCheckedChange={(checked) => 
+                                handleOrderSelection(order.orderId, checked as boolean)
+                              }
+                              aria-label={`Select order ${order.orderId}`}
+                            />
+                          ) : order.status === 'exception' && order.exceptions.length > 0 ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleOrderExpansion(order.orderId)}
+                              className="p-0 h-6 w-6"
+                            >
+                              {expandedOrders.includes(order.orderId) ? (
+                                <ChevronDown size={16} />
+                              ) : (
+                                <ChevronRight size={16} />
+                              )}
+                            </Button>
+                          ) : null}
+                        </TableCell>
+                        <TableCell className="font-medium">{order.orderId}</TableCell>
+                        <TableCell>{order.clientId}</TableCell>
+                        <TableCell>{formatDate(order.dueDate)}</TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {order.waveId ? (
+                            <Badge variant="outline">{order.waveId}</Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {order.exceptions.length > 0 ? (
+                            <Badge variant="destructive" className="text-xs">
+                              {order.exceptions.length} exception{order.exceptions.length !== 1 ? 's' : ''}
+                            </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                      
+                      {/* Exception Details Row */}
+                      {order.status === 'exception' && expandedOrders.includes(order.orderId) && (
+                        <TableRow>
+                          <TableCell colSpan={8}>
+                            <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                              <h4 className="font-medium text-sm flex items-center gap-2">
+                                <AlertTriangle size={16} className="text-red-600" />
+                                Exception Details
+                              </h4>
+                              <div className="space-y-2">
+                                {order.exceptions.map((exception, index) => {
+                                  // Mock exception details - in real app, this would come from the API
+                                  const exceptionDetails: ExceptionDetails = {
+                                    id: `exc_${order.orderId}_${index}`,
+                                    sku: exception.sku || 'SKU123',
+                                    code: exception.type,
+                                    actor: 'picker_edgar',
+                                    timestamp: new Date().toISOString(),
+                                    resolved: false
+                                  }
+                                  
+                                  return (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-background rounded border">
+                                      <div className="space-y-1">
+                                        <div className="text-sm font-medium">
+                                          SKU: {exceptionDetails.sku}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          Issue: {exceptionDetails.code.replace('_', ' ')} • 
+                                          Reported by: {exceptionDetails.actor} • 
+                                          {formatDate(exceptionDetails.timestamp)}
+                                        </div>
+                                      </div>
+                                      <ExceptionResolutionModal
+                                        exception={exceptionDetails}
+                                        orderId={order.orderId}
+                                        onResolve={handleExceptionResolved}
+                                      />
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))
                 )}
               </TableBody>
