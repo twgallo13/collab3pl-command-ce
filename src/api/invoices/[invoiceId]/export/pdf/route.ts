@@ -1,11 +1,11 @@
 /**
  * API route for exporting invoices as PDF files
- */
+imp
 
-import { Invoice } from '@/types/invoices'
+  if (!invoiceId) return null
 
-// Mock function to get invoice data - in production, this would fetch from database
-function getMockInvoice(invoiceId: string): Invoice | null {
+      invoiceId,
+      currency: 'USD',
   if (!invoiceId) return null
   
   return {
@@ -28,27 +28,27 @@ function getMockInvoice(invoiceId: string): Invoice | null {
         state: 'CA',
         zipCode: '90210',
         country: 'United States'
-      },
+      qu
       billingContact: {
-        name: 'John Smith',
+    lineItems: [
         email: 'billing@acme.com',
-        phone: '+1 (555) 123-4567'
+        category: 'Receiving',
       }
-    },
+      
     dateRange: {
       periodStart: '2024-01-01',
       periodEnd: '2024-01-31',
       issuedOn: '2024-02-01',
       dueOn: '2024-02-16',
-      terms: 15
+        service
     },
-    references: {
+        unit: 'or
       quoteId: 'QUO-2024-001',
       rateCardVersionId: 'v2024.1'
     },
-    lineItems: [
+    discounts: [
       {
-        id: 'LI_001',
+      rate: 8.75,
         category: 'Receiving',
         serviceCode: 'REC_PALLET',
         description: 'Pallet receiving service',
@@ -56,19 +56,19 @@ function getMockInvoice(invoiceId: string): Invoice | null {
         unit: 'pallet',
         unitRate: 25.0000,
         extendedCost: 2500.00,
-        discountable: true
+      discountedSubtotal: 
       },
-      {
+    },
         id: 'LI_002',
         category: 'Fulfillment',
         serviceCode: 'FUL_ORDER',
         description: 'Order fulfillment service',
         quantity: 200,
-        unit: 'order',
+          action: 'cre
         unitRate: 15.0000,
-        extendedCost: 3000.00,
+          details: 'Invoice cr
         discountable: true
-      }
+      i
     ],
     discounts: [],
     tax: {
@@ -76,11 +76,11 @@ function getMockInvoice(invoiceId: string): Invoice | null {
       rate: 8.75,
       basis: 'discounted_subtotal'
     },
-    rounding: {
+function format
       mode: 'round',
-      precision: 2
+    year: 'numeric
     },
-    totals: {
+  })
       subtotal: 5500.00,
       discountableSubtotal: 5500.00,
       nonDiscountableSubtotal: 0.00,
@@ -88,13 +88,13 @@ function getMockInvoice(invoiceId: string): Invoice | null {
       discountedSubtotal: 5500.00,
       taxAmount: 481.25,
       grandTotal: 5981.25
-    },
+    li
     notes: {
       internal: 'Client has been consistently on time with payments',
       vendorVisible: 'Thank you for your business',
       history: []
     },
-    audit: {
+    notes: i
       events: [
         {
           action: 'created',
@@ -102,13 +102,13 @@ function getMockInvoice(invoiceId: string): Invoice | null {
           userId: 'admin',
           details: 'Invoice created for January services'
         }
-      ],
+    
       inputsSnapshot: {}
-    },
+      
     exports: {
       pdfGeneratedOn: '2024-02-01T09:00:00Z'
     }
-  }
+   
 }
 
 function formatCurrency(amount: number): string {
@@ -120,15 +120,15 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+      message: 'PD
   })
-}
+ 
 
 function generatePDFContent(invoice: Invoice): string {
   // In a real implementation, this would use a PDF generation library
   // For now, we'll simulate the PDF generation process
   
-  const content = {
+      status: 500,
     invoice: invoice.meta.invoiceId,
     client: invoice.client.name,
     issuedDate: formatDate(invoice.dateRange.issuedOn),
@@ -144,14 +144,14 @@ function generatePDFContent(invoice: Invoice): string {
     total: formatCurrency(invoice.totals.grandTotal),
     notes: invoice.notes.vendorVisible
   }
-  
+
   return JSON.stringify(content, null, 2)
-}
+
 
 export async function POST(request: Request, { params }: { params: { invoiceId: string } }) {
   try {
-    const { invoiceId } = params
-    
+
+
     // Fetch invoice data from database (mocked for now)
     const invoice = getMockInvoice(invoiceId)
     
@@ -160,11 +160,11 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
         status: 404,
         headers: { 'Content-Type': 'application/json' }
       })
-    }
+
 
     // Generate PDF content (simulated)
     const pdfContent = generatePDFContent(invoice)
-    
+
     // In a real implementation, this would:
     // 1. Use a PDF library like pdf-lib or Puppeteer
     // 2. Generate an actual PDF document
@@ -182,7 +182,7 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
       pdfData: mockPdfData,
       exportedOn: now,
       message: 'PDF generated successfully (simulated)'
-    }), {
+
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     })
@@ -192,9 +192,9 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
     return new Response(JSON.stringify({ 
       error: 'Failed to generate PDF export',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }), {
+
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     })
-  }
+
 }
