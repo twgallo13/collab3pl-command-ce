@@ -42,7 +42,7 @@ const mockOrders: Order[] = [
       {
         type: 'insufficient_inventory',
         message: 'Not enough inventory for SKU PART-004',
-        timestamp: '2024-01-15T08:30:00Z'
+        createdAt: '2024-01-15T08:30:00Z'
       }
     ],
     createdAt: '2024-01-13T16:45:00Z',
@@ -88,7 +88,7 @@ const mockOrders: Order[] = [
       {
         type: 'damaged_inventory',
         message: 'Inventory damaged during receiving',
-        timestamp: '2024-01-14T15:20:00Z'
+        createdAt: '2024-01-14T15:20:00Z'
       }
     ],
     createdAt: '2024-01-12T13:15:00Z',

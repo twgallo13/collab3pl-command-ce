@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { AlertTriangle, Package, CheckCircle } from '@phosphor-icons/react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { AlertTriangle, Package, CheckCircle, Play } from '@phosphor-icons/react'
 import { Order } from '@/types/wms'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface OrderCounts {
   open: number
@@ -19,6 +21,8 @@ export function WmsManagerDashboard() {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([])
   const [activeFilter, setActiveFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [isReleasingWave, setIsReleasingWave] = useState(false)
   const [orderCounts, setOrderCounts] = useState<OrderCounts>({
     open: 0,
     readyToPick: 0,
@@ -79,6 +83,69 @@ export function WmsManagerDashboard() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter)
+    setSelectedOrders([]) // Clear selection when changing filter
+  }
+
+  const handleOrderSelection = (orderId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedOrders(prev => [...prev, orderId])
+    } else {
+      setSelectedOrders(prev => prev.filter(id => id !== orderId))
+    }
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      // Only select orders that are ready_to_pick
+      const readyToPickOrders = filteredOrders
+        .filter(order => order.status === 'ready_to_pick')
+        .map(order => order.orderId)
+      setSelectedOrders(readyToPickOrders)
+    } else {
+      setSelectedOrders([])
+    }
+  }
+
+  const releaseWave = async () => {
+    if (selectedOrders.length === 0) {
+      toast.error('Please select at least one order to release')
+      return
+    }
+
+    setIsReleasingWave(true)
+    
+    try {
+      const response = await fetch('/api/wms/waves', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderIds: selectedOrders
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to release wave')
+      }
+
+      const result = await response.json()
+      
+      toast.success('Wave released successfully', {
+        description: `${result.data.waveId} created with ${result.data.orderCount} orders`
+      })
+
+      // Refresh orders and clear selection
+      await fetchOrders()
+      setSelectedOrders([])
+      
+    } catch (error) {
+      toast.error('Failed to release wave', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred'
+      })
+    } finally {
+      setIsReleasingWave(false)
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -112,6 +179,18 @@ export function WmsManagerDashboard() {
     { id: 'ready_to_pick', label: 'Ready to Pick', count: orderCounts.readyToPick },
     { id: 'exception', label: 'Exceptions', count: orderCounts.exceptions }
   ]
+
+  // Check if we can release a wave (have selected ready_to_pick orders)
+  const canReleaseWave = selectedOrders.length > 0 && 
+    selectedOrders.every(orderId => {
+      const order = orders.find(o => o.orderId === orderId)
+      return order?.status === 'ready_to_pick'
+    })
+
+  // Check if all ready_to_pick orders are selected
+  const readyToPickOrders = filteredOrders.filter(order => order.status === 'ready_to_pick')
+  const allReadyToPickSelected = readyToPickOrders.length > 0 && 
+    readyToPickOrders.every(order => selectedOrders.includes(order.orderId))
 
   return (
     <div className="p-6 space-y-6">
@@ -185,10 +264,26 @@ export function WmsManagerDashboard() {
 
       {/* Orders Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             {activeFilter === 'all' ? 'All Orders' : filterButtons.find(f => f.id === activeFilter)?.label}
           </CardTitle>
+          {selectedOrders.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selectedOrders.length} selected
+              </span>
+              <Button
+                onClick={releaseWave}
+                disabled={!canReleaseWave || isReleasingWave}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Play size={16} />
+                {isReleasingWave ? 'Releasing...' : 'Release Selected as Wave'}
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -199,6 +294,15 @@ export function WmsManagerDashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    {readyToPickOrders.length > 0 && (
+                      <Checkbox
+                        checked={allReadyToPickSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all ready to pick orders"
+                      />
+                    )}
+                  </TableHead>
                   <TableHead>Order ID</TableHead>
                   <TableHead>Client ID</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -211,13 +315,24 @@ export function WmsManagerDashboard() {
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No orders found for the selected filter
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredOrders.map((order) => (
                     <TableRow key={order.orderId}>
+                      <TableCell>
+                        {order.status === 'ready_to_pick' ? (
+                          <Checkbox
+                            checked={selectedOrders.includes(order.orderId)}
+                            onCheckedChange={(checked) => 
+                              handleOrderSelection(order.orderId, checked as boolean)
+                            }
+                            aria-label={`Select order ${order.orderId}`}
+                          />
+                        ) : null}
+                      </TableCell>
                       <TableCell className="font-medium">{order.orderId}</TableCell>
                       <TableCell>{order.clientId}</TableCell>
                       <TableCell>{formatDate(order.dueDate)}</TableCell>
