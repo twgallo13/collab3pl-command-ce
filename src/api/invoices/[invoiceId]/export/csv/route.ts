@@ -1,14 +1,10 @@
 /**
- * Exports invoice data
  * Exports invoice data in CSV format
  */
 
-  
+import { Invoice } from '@/types/invoices'
 
-      status: 'issued',
-      createdOn: '2024-01-15T10:00:00Z',
-      version: 1
-  
+function getMockInvoice(invoiceId: string): Invoice | null {
   return {
     meta: {
       invoiceId: invoiceId,
@@ -26,116 +22,67 @@
         line1: '123 Business Street',
         line2: 'Suite 100',
         city: 'Los Angeles',
-        zipCode: '90
-        zip: '90210',
+        state: 'CA',
+        zipCode: '90210',
         country: 'United States'
       },
-      periodEnd: '2024-
+      billingContact: {
         name: 'John Smith',
-      terms: 15
+        email: 'billing@acme.com',
         phone: '+1 (555) 123-4567'
-      qu
-      billingAddress: {
-        line1: '123 Business Street',
-        line2: 'Suite 100',
-        city: 'Los Angeles',
-        state: 'CA',
-        quantity: 100,
-        country: 'United States'
-       
+      }
     },
-      {
+    dateRange: {
       periodStart: '2024-01-01',
       periodEnd: '2024-01-31',
       issuedOn: '2024-02-01',
-        unit: 'orders',
+      dueOn: '2024-02-16',
       terms: 15
-      
+    },
     references: {
       quoteId: 'QTE-2024-001',
       rateCardVersionId: 'v2024.1'
-      
-    lineItems: [
-      b
-    rounding: {
-      precision: 2
-    totals: {
-      nonDiscountableSubtotal: 0.00,
-      discountedSubtot
-      grandTotal: 5231.0
-    notes: {
-      internal: 'Client has be
     },
-      ev
-       
-          userId
-        }
-      inputsSnapshot: {}
-    exports: {
-    }
-}
-function formatCurrency
-}
-function escapeCSVField(fi
-  // If 
-    ret
-  return str
-
-  const lines: string[] = []
-  // Add header information
-  lines.push('')
-  lines.push(`Client,$
-  lines.push(`Issued Da
-  lines.push(`Currency,${escap
-  
-  lines.
-  
-    lines.push([
-      escapeCSVField(ite
-      escapeCSVField(item.descrip
-      escapeCSVField(item.unit),
-      escapeCSVField(i
-    ].join(','))
-  
-  
-  if (invoice.discounts.le
-    lin
-    fo
-        escapeCS
-       
-        escapeCSVFie
-      ].join(','))
-    
-  }
-  // Add totals section
-  lines.push('Description,Amo
-  lines
-  
-    lines.
-  
-  
-  
-  if (
-    lines.push(
-  
-}
-export
-    const { i
-    // Fetch invoice dat
-    
-      return new Response(JSO
-        headers: { 'Content-Type':
-    }
-    // Generate CSV conte
-    
-    const no
-    return new Response(JSON.stringify({
-      filename: `${invoice.meta.invoiceId}.csv`,
-      exportedOn: now
-      
-    })
-  } catch (erro
-    retur
+    lineItems: [
+      {
+        id: 'LI_001',
+        category: 'Receiving',
+        serviceCode: 'REC_PALLET',
+        description: 'Pallet receiving service',
+        quantity: 100,
+        unit: 'pallets',
+        unitRate: 25.0000,
+        extendedCost: 2500.00,
+        discountable: true
+      }
+    ],
+    discounts: [],
+    tax: {
+      enabled: true,
+      rate: 8.75,
+      basis: 'discounted_subtotal'
+    },
+    rounding: {
+      mode: 'round',
+      precision: 2
+    },
+    totals: {
+      subtotal: 2500.00,
+      discountableSubtotal: 2500.00,
+      nonDiscountableSubtotal: 0.00,
+      discountAmount: 0.00,
+      discountedSubtotal: 2500.00,
+      taxAmount: 218.75,
+      grandTotal: 2718.75
+    },
+    notes: {
+      internal: 'Client has been consistently on time with payments',
+      vendorVisible: 'Thank you for your business',
+      history: []
+    },
+    audit: {
+      events: [
+        {
           timestamp: '2024-01-15T10:00:00Z',
           event: 'created',
           userId: 'admin',
@@ -276,7 +223,8 @@ export async function POST(request: Request, { params }: { params: { invoiceId: 
       error: 'Failed to generate CSV export',
       details: error instanceof Error ? error.message : 'Unknown error'
     }), {
-
+      status: 500,
       headers: { 'Content-Type': 'application/json' }
-
+    })
   }
+}

@@ -1,13 +1,28 @@
 /**
- * Handles wave-specific operati
  * Handles wave-specific operations including picklist generation
  */
 
-export async function GET(
-  { params }: { params: { waveId: string } }
+import { NextResponse } from 'next/server'
+import { Wave, Order, Inventory, Bin } from '@/types/wms'
 
-    
-      return NextRespon
+interface PicklistItem {
+  invId: string
+  sku: string
+  variant?: string
+  qty: number
+  binId: string
+  location: {
+    zone: string
+    aisle: string
+    shelf: string
+    position: string
+  }
+  orderId: string
+  status: 'pending' | 'picked' | 'not_found'
+}
+
+export async function GET(
+  request: Request,
   { params }: { params: { waveId: string } }
 ) {
   try {
@@ -38,48 +53,47 @@ export async function GET(
         clientId: 'CLIENT-001',
         status: 'picking',
         items: [
-      },
-        orderId: 'ORDER-005',
-        st
-          { sku
+          { sku: 'SKU-001', variant: 'Red', qty: 3, status: 'pending' },
+          { sku: 'SKU-002', variant: 'Blue', qty: 2, status: 'pending' }
         ],
+        waveId: waveId,
+        exceptions: [],
+        createdAt: '2024-01-15T14:00:00Z',
+        updatedAt: '2024-01-15T15:00:00Z'
+      },
+      {
+        orderId: 'ORDER-005',
+        clientId: 'CLIENT-002',
+        status: 'picking',
+        items: [
+          { sku: 'SKU-003', variant: 'Green', qty: 1, status: 'pending' }
+        ],
+        waveId: waveId,
         exceptions: [],
         createdAt: '2024-01-15T14:30:00Z',
+        updatedAt: '2024-01-15T15:00:00Z'
       }
+    ]
 
-    con
-        invId: 'INV-001',
-        labelId: 'LBL-001',
-        poId: 'PO-001',
-        status: 
-        updatedAt: '2024-01-10T09:00:00Z',
-      },
-        in
-        labelId
-        poId: 'PO-001',
-        status: 'putaway'
-        updatedAt: '2024-01-10T09:15:00Z',
-      },
-       
-     
-
-        status: 'putaway',
-        updatedAt: '2024-01-12T10:00:00Z
-      }
-
-    const mockBins: Bin
-        binId: 'BIN-A1-01',
-        capacityUnits: 10,
-        status: 'active
-        updated
+    // Mock inventory data
+    const mockInventory: Inventory[] = [
       {
-        location: { zone: 'A', aisle: '1', 
-        currentUnits: 2,
-        createdAt: '2024-01
+        invId: 'INV-001',
+        sku: 'SKU-001',
+        variant: 'Red',
+        labelId: 'LBL-001',
+        binId: 'BIN-A1-01',
+        poId: 'PO-001',
+        qty: 5,
+        status: 'putaway',
+        receivedAt: '2024-01-10T09:00:00Z',
+        updatedAt: '2024-01-10T09:00:00Z',
+        receivedBy: 'edgar'
       },
-       
+      {
         invId: 'INV-002',
         sku: 'SKU-002',
+        variant: 'Blue',
         labelId: 'LBL-002',
         binId: 'BIN-A1-02',
         poId: 'PO-001',
@@ -92,6 +106,7 @@ export async function GET(
       {
         invId: 'INV-003',
         sku: 'SKU-003',
+        variant: 'Green',
         labelId: 'LBL-003',
         binId: 'BIN-B2-01',
         poId: 'PO-002',
@@ -158,47 +173,42 @@ export async function GET(
               binId: inventory.binId,
               location: bin?.location || { zone: '', aisle: '', shelf: '', position: '' },
               orderId: order.orderId,
+              status: 'pending'
+            })
+          }
+        }
+      }
+    }
 
+    // Sort picklist by location for efficient picking path
+    picklistItems.sort((a, b) => {
+      // Sort by zone, then aisle, then shelf, then position
+      if (a.location.zone !== b.location.zone) {
+        return a.location.zone.localeCompare(b.location.zone)
+      }
+      if (a.location.aisle !== b.location.aisle) {
+        return a.location.aisle.localeCompare(b.location.aisle)
+      }
+      if (a.location.shelf !== b.location.shelf) {
+        return a.location.shelf.localeCompare(b.location.shelf)
+      }
+      return a.location.position.localeCompare(b.location.position)
+    })
 
+    return NextResponse.json({
+      wave: mockWave,
+      orders: mockOrders,
+      picklist: picklistItems
+    })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  } catch (error) {
+    console.error('Wave retrieval error:', error)
+    return NextResponse.json(
+      { 
+        error: 'Failed to retrieve wave data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}

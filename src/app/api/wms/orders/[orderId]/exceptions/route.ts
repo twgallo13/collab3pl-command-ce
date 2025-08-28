@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-  request: NextRequest,
-) {
-    const { ord
-
+interface ExceptionRequest {
+  sku: string
+  code?: string
+  details?: string
 }
 
-    
-    const actor = "pi
-    // Create exc
-      excepti
-      sku,
-      actor,
-      message: `Ite
-    }
- 
+interface ExceptionRecord {
+  exceptionId: string
+  orderId: string
+  sku: string
+  code: string
+  actor: string
+  timestamp: string
+  details?: string
+  resolved: boolean
+}
 
 export async function POST(
   request: NextRequest,
@@ -36,68 +37,36 @@ export async function POST(
     // Create exception record
     const exceptionRecord: ExceptionRecord = {
       exceptionId,
-    )
+      orderId,
       sku,
-
+      code,
       actor,
       timestamp,
-      details
-    c
+      details,
+      resolved: false
+    }
     
     // In a real implementation, this would:
     // 1. Save the exception record to the database
+    // 2. Update the order status to "exception"
+    // 3. Send notifications to warehouse managers
+    // 4. Log the event for audit purposes
 
+    return NextResponse.json({
+      success: true,
+      message: `Exception logged for SKU ${sku}`,
+      exception: exceptionRecord
+    })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  } catch (error) {
+    console.error('Error logging exception:', error)
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to log exception',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}
